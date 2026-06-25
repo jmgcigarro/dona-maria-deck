@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#062141">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Dona Maria Deck">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 
 <style>
@@ -208,7 +208,8 @@ h1,h2,h3,h4,p,label,span,b,small{min-width:0}
 /* Mobile compacto — reduz densidade visual sem mexer na lógica */
 @media(max-width:560px){
   body{font-size:14px}
-  .main{padding:8px 8px 76px}
+  html,body{min-height:100%;overscroll-behavior-y:none}
+  .main{padding:calc(14px + env(safe-area-inset-top)) 8px calc(76px + env(safe-area-inset-bottom))}
   .grid,.settings-grid,.analysis-grid,.info-cards,.dashboard-note,.home-mini-kpis{gap:9px!important}
   .top{gap:8px;margin-bottom:10px}
   .top h2{font-size:22px!important;line-height:1.12}
@@ -889,7 +890,7 @@ let records=JSON.parse(localStorage.getItem('dm_records_v4')||'[]');
 const daily=[1240,1390,1810,2310,2980,2520,980,1430,1680,1720,2290,3420,2870,1100,1450,1820,1930,1460,1920,2480,2140];
 function addBtns(host,arr){arr.forEach(p=>{const b=document.createElement('button');b.textContent=p[1];b.dataset.page=p[0];b.onclick=()=>show(p[0]);host.appendChild(b);});}
 function build(){bindCurrencyInputs();addBtns(navInputs,inputPages);addBtns(navReports,reportPages);addBtns(phonebar,[['inicio','Início',''],...inputPages.map(p=>[p[0],p[1].replace('Faturação Diária Restaurante','Faturação').replace('Despesas com Fornecedores','Fornecedores').replace('Despesas Fixas','Fixas').replace('Investimentos','Invest.'),p[2]]),...reportPages.map(p=>[p[0],p[1].replace('Resumo / Alertas','Resumo').replace('Faturação - Atual','Fat. Atual').replace('Faturação - Histórico','Fat. Hist.').replace('Despesas Fixas','Fixas').replace('Assistente IA','IA').replace('Configurações','Config.'),p[2]])]);document.querySelectorAll('select[name="mes"]').forEach(s=>{s.innerHTML=meses.map(m=>`<option>${m}</option>`).join('')});renderRecords();updateNav('inicio');loadListsFromSupabase();}
-function show(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');const p=pages.find(x=>x[0]===id)||['resumo','Resumo',''];title.textContent=p[1];subtitle.textContent=p[2];updateNav(id);window.scrollTo({top:0,behavior:'smooth'});}
+function show(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');const p=pages.find(x=>x[0]===id)||['resumo','Resumo',''];title.textContent=p[1];subtitle.textContent=p[2];updateNav(id);const topOffset=window.matchMedia&&window.matchMedia('(max-width:560px)').matches?1:0;window.scrollTo({top:topOffset,behavior:'smooth'});}
 function updateNav(id){document.querySelectorAll('button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===id));}
 function installZoomLock(){
   document.addEventListener('wheel',ev=>{
