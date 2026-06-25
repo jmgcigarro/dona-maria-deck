@@ -569,6 +569,21 @@ async function assertNoDespesaFixaDuplicate(ano,mes,tipo){
   if(exists) throw new Error(`A despesa fixa "${tipo}" de ${mes} ${ano} já foi registada.`);
 }
 
+async function assertNoOrdenadoDuplicate(ano,mes,funcionario){
+  const targetMes=normalizeKey(mes);
+  const targetFuncionario=normalizeKey(funcionario);
+  if(!ano || !targetMes || !targetFuncionario) return;
+  const {data,error}=await db.from('ordenados').select('*');
+  if(error) throw new Error('Não foi possível verificar se este ordenado já existe.');
+  const exists=(data||[]).some(row=>{
+    const rowAno=Number(getTableValue(row,['Ano','ano']));
+    const rowMes=normalizeKey(getTableValue(row,['Mês','mes']));
+    const rowFuncionario=normalizeKey(getTableValue(row,['Funcionário','Funcionário/a','Funcionario','funcionario']));
+    return rowAno===Number(ano) && rowMes===targetMes && rowFuncionario===targetFuncionario;
+  });
+  if(exists) throw new Error(`O ordenado de "${funcionario}" de ${mes} ${ano} já foi registado.`);
+}
+
 function isAggregateFixedType(value){
   const s=normalizeKey(value);
   return ['total','totais','subtotal','sub total'].includes(s);
@@ -691,13 +706,15 @@ async function launchRecord(ev){
       records.unshift({id:Date.now(),type:'Fornecedor',date,cat,desc:'Gravado no Supabase',value:val});
 
     }else if(f.dataset.type==='Ordenados'){
+      const mes=fd.get('mes');
+      await assertNoOrdenadoDuplicate(currentYear(),mes,cat);
       await insertOnline('ordenados',{
         "Ano":currentYear(),
-        "Mês":fd.get('mes'),
+        "Mês":mes,
         "Funcionário":cat,
         "Valor":val
       });
-      records.unshift({id:Date.now(),type:'Ordenados',date:fd.get('mes'),cat,desc:'Gravado no Supabase',value:val});
+      records.unshift({id:Date.now(),type:'Ordenados',date:mes,cat,desc:'Gravado no Supabase',value:val});
 
     }else if(f.dataset.type==='Fixa'){
       const mes=fd.get('mes');
