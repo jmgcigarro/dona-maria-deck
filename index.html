@@ -151,18 +151,6 @@ input[type=number]{
 .list-items{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:14px;background:white;margin-top:12px}
 .list-items .setting-row{border:0;border-bottom:1px solid var(--line);border-radius:0;background:white}
 .list-items .setting-row:last-child{border-bottom:0}
-.theme-dark{--bg:#101820;--panel:#17232d;--ink:#eef6f7;--muted:#a7b6c4;--line:#2d3d49;--shadow:0 18px 50px rgba(0,0,0,.24)}
-.theme-dark .side{background:linear-gradient(180deg,#08131d,#102838 55%,#12372d)}
-.theme-dark .btn,.theme-dark .field input,.theme-dark .field select,.theme-dark .field textarea,.theme-dark .setting-row,.theme-dark .list-items,.theme-dark .alert,.theme-dark .prompt-btn,.theme-dark .chat-window,.theme-dark .msg.ai,.theme-dark .mini-kpi,.theme-dark .day,.theme-dark .info-card,.theme-dark .quote-card,.theme-dark .importbox{background:#17232d;color:var(--ink);border-color:var(--line)}
-.theme-dark .theme-preview,.theme-dark .list-manager{background:#13202a}
-.palette-executive{--bg:#edf4fb;--brand:#073763;--brand2:#2d6f8e;--good:#2d6f8e;--blue:#3b82a0}
-.palette-restaurant{--bg:#eef8f1;--brand:#123d2c;--brand2:#2f8f4e;--good:#2f8f4e;--blue:#2d7f8e}
-.palette-minimal{--bg:#f4f6f8;--brand:#27313b;--brand2:#5f6f7a;--good:#2f7d5a;--blue:#607086}
-.density-compact{--radius:16px}
-.density-compact .card{padding:16px}
-.density-compact .field input,.density-compact .field select,.density-compact .field textarea{height:42px;min-height:42px;line-height:42px}
-.density-compact .btn{padding:10px 13px;border-radius:12px}
-.density-compact .table th,.density-compact .table td{padding:9px}
 @media(max-width:760px){.settings-grid .form,.password-form{grid-template-columns:1fr!important}.settings-grid .field label{white-space:normal;overflow:visible}}
 
 
@@ -510,7 +498,7 @@ body.auth-wait .app{display:none!important;}
 </div></section>
 
 <section id="assistente" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Assistente IA</h2><p>Faça perguntas sobre faturação, despesas, fornecedores, resultados e tendências do Dona Maria Deck.</p></div><span class="tag good">Demonstração</span></div></div><div class="chat-shell full"><div class="card"><h3>Sugestões rápidas</h3><div class="prompt-list"><button class="prompt-btn" onclick="askAI('Qual foi o melhor mês deste ano?')">Qual foi o melhor mês deste ano?</button><button class="prompt-btn" onclick="askAI('Quanto gastámos por fornecedor?')">Quanto gastámos por fornecedor?</button><button class="prompt-btn" onclick="askAI('Compara este mês com o mesmo mês do ano passado.')">Compara este mês com o mesmo mês do ano passado.</button><button class="prompt-btn" onclick="askAI('Qual foi a margem líquida acumulada?')">Qual foi a margem líquida acumulada?</button><button class="prompt-btn" onclick="askAI('Que despesas estão acima da média?')">Que despesas estão acima da média?</button></div><div class="screen-note">Na app final, este assistente vai ligar à base de dados e responder apenas com dados reais importados ou lançados.</div></div><div class="card chat-card"><div class="chat-window" id="chatWindow"><div class="msg ai"><b>Assistente Dona Maria Deck</b><br>Estou pronto para analisar os dados do restaurante. Nesta versão, as respostas são demonstrativas; na app final serão calculadas pela base de dados.</div><div class="msg ai">Exemplo: a faturação acumulada de 2026 está acima de 2025 e os fornecedores devem ser acompanhados por tendência de subida.</div></div><div class="chat-input"><input id="aiInput" placeholder="Faça uma pergunta sobre o restaurante..."><button class="btn primary" onclick="askAI()">Analisar</button></div></div></div></div></section>
-<section id="configuracoes" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Configurações</h2><p>Área de preparação da aplicação final: estilo da app, importação, listas, utilizadores, segurança e IA.</p></div><span class="tag">Administração</span></div></div><div class="settings-grid full"><div class="card"><h3>Estilo da aplicação</h3><div class="form"><div class="field"><label>Modo visual</label><select id="styleMode"><option>Automático</option><option>Claro</option><option>Escuro</option></select></div><div class="field"><label>Paleta principal</label><select id="stylePalette"><option>Azul, cinza e verde</option><option>Azul executivo</option><option>Verde restaurante</option><option>Cinza minimalista</option></select></div><div class="field"><label>Densidade da interface</label><select id="styleDensity"><option>Confortável</option><option>Compacta</option></select></div><div class="field"><label>Formato dos valores</label><select id="styleMoney"><option>1 388,89 €</option><option>€ 1 388,89</option></select></div></div><div class="theme-preview" id="themePreview"><span class="swatch navy"></span><span class="swatch green"></span><span class="swatch grey"></span><b id="styleStatus">Pré-visualização do tema atual</b></div><div class="settings-actions"><button class="btn primary" onclick="saveAppStyle()">Guardar estilo</button></div></div><div class="card"><h3>Histórico e importação</h3><div class="importbox" style="padding:18px"><p><b>Importar Excel histórico</b></p><p>Faturação, fornecedores, ordenados, despesas fixas, investimentos e listas de apoio.</p><input type="file" accept=".xls,.xlsx,.xlsb,.csv"><br><br><button class="btn primary">Pré-visualizar importação</button></div></div><div class="card"><h3>Listas</h3><div class="setting-list"><div class="setting-row"><span>Fornecedores ativos</span><b id="cfgCountFornecedores">—</b></div><div class="setting-row"><span>Funcionários</span><b id="cfgCountFuncionarios">—</b></div><div class="setting-row"><span>Despesas fixas</span><b id="cfgCountDespesasFixas">—</b></div><div class="setting-row"><span>Categorias de investimento</span><b>6</b></div></div><div class="screen-note" id="cfgListStatus">As listas são carregadas automaticamente do Supabase.</div><div class="settings-actions"><button class="btn" onclick="loadListsFromSupabase()">Atualizar listas</button><button class="btn" onclick="openListManager('fornecedores')">Gerir fornecedores</button><button class="btn" onclick="openListManager('funcionarios')">Gerir funcionários</button><button class="btn" onclick="openListManager('despesas')">Gerir despesas fixas</button></div><div class="list-manager" id="cfgListManager"><div class="list-manager-title"><h4 id="cfgListManagerTitle">Gerir lista</h4><span class="tag" id="cfgListManagerTable">Supabase</span></div><form class="form" onsubmit="saveListItem(event)"><div class="field"><label id="cfgListInputLabel">Nome</label><input id="cfgListInput" required autocomplete="off" placeholder="Novo item da lista"></div><button class="btn primary" type="submit">Adicionar</button></form><div class="screen-note" id="cfgListManagerStatus">Escolhe uma lista para gerir.</div><div class="list-items" id="cfgListItems"></div></div></div><div class="card"><h3>Utilizadores</h3><div class="role-grid"><div class="role-card"><h4>Administrador</h4><p>Controlo total, importação, apagar e exportar.</p></div><div class="role-card"><h4>Gerente</h4><p>Introduzir, consultar e analisar dados.</p></div><div class="role-card"><h4>Consulta</h4><p>Acesso apenas a dashboards e relatórios.</p></div></div></div><div class="card"><h3>Segurança e backup</h3><div class="setting-list"><div class="setting-row"><span><span class="status-dot"></span>Base de dados online</span><b>Preparado</b></div><div class="setting-row"><span><span class="status-dot warn"></span>Último backup</span><b>Por configurar</b></div><div class="setting-row"><span>Exportação geral</span><b>Excel / CSV</b></div></div><div class="settings-actions"><button class="btn primary">Exportar dados</button><button class="btn">Ver backups</button></div></div><div class="card"><h3>Assistente IA</h3><div class="form"><div class="field"><label>Modo de resposta</label><select><option>Executivo</option><option>Financeiro</option><option>Completo</option></select></div><div class="field"><label>Histórico de conversas</label><select><option>Guardar</option><option>Não guardar</option></select></div><div class="field full"><label>Objetivo</label><input value="Responder com base nos dados reais da base de dados do Dona Maria Deck."></div></div><div class="settings-actions"><button class="btn primary">Guardar IA</button></div></div></div></div></section>
+<section id="configuracoes" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Configurações</h2><p>Área de preparação da aplicação final: estilo da app, importação, listas, utilizadores, segurança e IA.</p></div><span class="tag">Administração</span></div></div><div class="settings-grid full"><div class="card"><h3>Histórico e importação</h3><div class="importbox" style="padding:18px"><p><b>Importar Excel histórico</b></p><p>Faturação, fornecedores, ordenados, despesas fixas, investimentos e listas de apoio.</p><input type="file" accept=".xls,.xlsx,.xlsb,.csv"><br><br><button class="btn primary">Pré-visualizar importação</button></div></div><div class="card"><h3>Listas</h3><div class="setting-list"><div class="setting-row"><span>Fornecedores ativos</span><b id="cfgCountFornecedores">—</b></div><div class="setting-row"><span>Funcionários</span><b id="cfgCountFuncionarios">—</b></div><div class="setting-row"><span>Despesas fixas</span><b id="cfgCountDespesasFixas">—</b></div><div class="setting-row"><span>Categorias de investimento</span><b>6</b></div></div><div class="screen-note" id="cfgListStatus">As listas são carregadas automaticamente do Supabase.</div><div class="settings-actions"><button class="btn" onclick="loadListsFromSupabase()">Atualizar listas</button><button class="btn" onclick="openListManager('fornecedores')">Gerir fornecedores</button><button class="btn" onclick="openListManager('funcionarios')">Gerir funcionários</button><button class="btn" onclick="openListManager('despesas')">Gerir despesas fixas</button></div><div class="list-manager" id="cfgListManager"><div class="list-manager-title"><h4 id="cfgListManagerTitle">Gerir lista</h4><span class="tag" id="cfgListManagerTable">Supabase</span></div><form class="form" onsubmit="saveListItem(event)"><div class="field"><label id="cfgListInputLabel">Nome</label><input id="cfgListInput" required autocomplete="off" placeholder="Novo item da lista"></div><button class="btn primary" type="submit">Adicionar</button></form><div class="screen-note" id="cfgListManagerStatus">Escolhe uma lista para gerir.</div><div class="list-items" id="cfgListItems"></div></div></div><div class="card"><h3>Utilizadores</h3><div class="role-grid"><div class="role-card"><h4>Administrador</h4><p>Controlo total, importação, apagar e exportar.</p></div><div class="role-card"><h4>Gerente</h4><p>Introduzir, consultar e analisar dados.</p></div><div class="role-card"><h4>Consulta</h4><p>Acesso apenas a dashboards e relatórios.</p></div></div></div><div class="card"><h3>Segurança e backup</h3><div class="setting-list"><div class="setting-row"><span><span class="status-dot"></span>Base de dados online</span><b>Preparado</b></div><div class="setting-row"><span><span class="status-dot warn"></span>Último backup</span><b>Por configurar</b></div><div class="setting-row"><span>Exportação geral</span><b>Excel / CSV</b></div></div><div class="settings-actions"><button class="btn primary">Exportar dados</button><button class="btn">Ver backups</button></div></div><div class="card"><h3>Assistente IA</h3><div class="form"><div class="field"><label>Modo de resposta</label><select><option>Executivo</option><option>Financeiro</option><option>Completo</option></select></div><div class="field"><label>Histórico de conversas</label><select><option>Guardar</option><option>Não guardar</option></select></div><div class="field full"><label>Objetivo</label><input value="Responder com base nos dados reais da base de dados do Dona Maria Deck."></div></div><div class="settings-actions"><button class="btn primary">Guardar IA</button></div></div></div></div></section>
 
 <section id="importar" class="section"><div class="card importbox"><h3>Importação do histórico Excel</h3><p>Aqui a app vai converter o Excel antigo em tabelas limpas: faturação diária, fornecedores, pessoal, fixas, investimentos e categorias.</p><input type="file" accept=".xls,.xlsx,.xlsb,.csv"><br><br><button class="btn primary">Simular validação</button></div></section>
 </main><aside class="side"><div class="brand"><img class="logo brand-logo" src="icons/icon-512.png" alt="Dona Maria Deck"><div><h1>Dona Maria Deck</h1><p>Gestão Inteligente</p></div></div><nav class="nav side-home"><button data-page="inicio" onclick="show('inicio')">Início</button></nav><div class="nav-title">Introduzir</div><nav class="nav" id="navInputs"></nav><div class="nav-title">Consultar</div><nav class="nav" id="navReports"></nav><div style="margin-top:14px;font-size:10px;color:rgba(255,255,255,.45);text-align:center;letter-spacing:.08em;">V61.2</div></aside></div><div class="phonebar" id="phonebar"></div>
@@ -753,72 +741,7 @@ async function loadListsFromSupabase(){
 }
 
 const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-let fmt=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
-const STYLE_STORAGE_KEY='dm_app_style_v1';
-const defaultAppStyle={mode:'Automático',palette:'Azul, cinza e verde',density:'Confortável',money:'1 388,89 €'};
-let currentAppStyle={...defaultAppStyle};
-
-function readAppStyle(){
-  try{return {...defaultAppStyle,...JSON.parse(localStorage.getItem(STYLE_STORAGE_KEY)||'{}')};}
-  catch(e){return {...defaultAppStyle};}
-}
-function shouldUseDarkMode(mode){
-  return mode==='Escuro' || (mode==='Automático' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-}
-function paletteClass(value){
-  return {
-    'Azul executivo':'palette-executive',
-    'Verde restaurante':'palette-restaurant',
-    'Cinza minimalista':'palette-minimal'
-  }[value] || '';
-}
-function updateMoneyFormatter(){
-  const base=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
-  if(currentAppStyle.money==='€ 1 388,89'){
-    fmt={format(value){return '€ '+base.format(Number(value)||0).replace(/[€\s\u00a0]/g,'').replace(/\u202f/g,' ');}};
-  }else{
-    fmt=base;
-  }
-}
-function syncStyleControls(){
-  const pairs=[['styleMode','mode'],['stylePalette','palette'],['styleDensity','density'],['styleMoney','money']];
-  pairs.forEach(([id,key])=>{const el=document.getElementById(id); if(el) el.value=currentAppStyle[key];});
-}
-function applyAppStyle(options={}){
-  currentAppStyle=readAppStyle();
-  document.body.classList.remove('theme-dark','palette-executive','palette-restaurant','palette-minimal','density-compact');
-  if(shouldUseDarkMode(currentAppStyle.mode)) document.body.classList.add('theme-dark');
-  const pal=paletteClass(currentAppStyle.palette);
-  if(pal) document.body.classList.add(pal);
-  if(currentAppStyle.density==='Compacta') document.body.classList.add('density-compact');
-  updateMoneyFormatter();
-  syncStyleControls();
-  const status=document.getElementById('styleStatus');
-  if(status) status.textContent=options.saved?'Estilo guardado e aplicado.':'Pré-visualização do tema atual';
-}
-function saveAppStyle(){
-  const next={
-    mode:document.getElementById('styleMode')?.value||defaultAppStyle.mode,
-    palette:document.getElementById('stylePalette')?.value||defaultAppStyle.palette,
-    density:document.getElementById('styleDensity')?.value||defaultAppStyle.density,
-    money:document.getElementById('styleMoney')?.value||defaultAppStyle.money
-  };
-  localStorage.setItem(STYLE_STORAGE_KEY,JSON.stringify(next));
-  applyAppStyle({saved:true});
-  renderRecords();
-  try{updateAmortizacaoPreview(document.querySelector('form[data-type="Investimento"]'));}catch(e){}
-}
-function bindStyleControls(){
-  applyAppStyle();
-  ['styleMode','stylePalette','styleDensity','styleMoney'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(!el) return;
-    el.addEventListener('change',()=>{
-      const status=document.getElementById('styleStatus');
-      if(status) status.textContent='Alterações por guardar.';
-    });
-  });
-}
+const fmt=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
 function parseCurrency(value){
   if(value===null||value===undefined)return 0;
   let s=String(value).trim();
@@ -861,7 +784,7 @@ const pages=[['inicio','Início','Capa da ferramenta de gestão Dona Maria Deck.
 let records=JSON.parse(localStorage.getItem('dm_records_v4')||'[]');
 const daily=[1240,1390,1810,2310,2980,2520,980,1430,1680,1720,2290,3420,2870,1100,1450,1820,1930,1460,1920,2480,2140];
 function addBtns(host,arr){arr.forEach(p=>{const b=document.createElement('button');b.textContent=p[1];b.dataset.page=p[0];b.onclick=()=>show(p[0]);host.appendChild(b);});}
-function build(){bindStyleControls();bindCurrencyInputs();addBtns(navInputs,inputPages);addBtns(navReports,reportPages);addBtns(phonebar,[['inicio','Início',''],...inputPages.map(p=>[p[0],p[1].replace('Faturação Diária Restaurante','Faturação').replace('Despesas com Fornecedores','Fornecedores').replace('Despesas Fixas','Fixas').replace('Investimentos','Invest.'),p[2]]),...reportPages.map(p=>[p[0],p[1].replace('Resumo / Alertas','Resumo').replace('Faturação - Atual','Fat. Atual').replace('Faturação - Histórico','Fat. Hist.').replace('Despesas Fixas','Fixas').replace('Assistente IA','IA').replace('Configurações','Config.'),p[2]])]);document.querySelectorAll('select[name="mes"]').forEach(s=>{s.innerHTML=meses.map(m=>`<option>${m}</option>`).join('')});renderRecords();updateNav('inicio');loadListsFromSupabase();}
+function build(){bindCurrencyInputs();addBtns(navInputs,inputPages);addBtns(navReports,reportPages);addBtns(phonebar,[['inicio','Início',''],...inputPages.map(p=>[p[0],p[1].replace('Faturação Diária Restaurante','Faturação').replace('Despesas com Fornecedores','Fornecedores').replace('Despesas Fixas','Fixas').replace('Investimentos','Invest.'),p[2]]),...reportPages.map(p=>[p[0],p[1].replace('Resumo / Alertas','Resumo').replace('Faturação - Atual','Fat. Atual').replace('Faturação - Histórico','Fat. Hist.').replace('Despesas Fixas','Fixas').replace('Assistente IA','IA').replace('Configurações','Config.'),p[2]])]);document.querySelectorAll('select[name="mes"]').forEach(s=>{s.innerHTML=meses.map(m=>`<option>${m}</option>`).join('')});renderRecords();updateNav('inicio');loadListsFromSupabase();}
 function show(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');const p=pages.find(x=>x[0]===id)||['resumo','Resumo',''];title.textContent=p[1];subtitle.textContent=p[2];updateNav(id);window.scrollTo({top:0,behavior:'smooth'});}
 function updateNav(id){document.querySelectorAll('button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===id));}
 function addMonths(dateStr,months){const d=dateStr?new Date(dateStr):new Date();d.setMonth(d.getMonth()+months);return d;}
