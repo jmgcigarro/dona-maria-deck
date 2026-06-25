@@ -502,13 +502,14 @@ body.auth-wait .app{display:none!important;}
 </div></section>
 
 <section id="assistente" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Assistente IA</h2><p>Faça perguntas sobre faturação, despesas, fornecedores, resultados e tendências do Dona Maria Deck.</p></div><span class="tag good">Demonstração</span></div></div><div class="chat-shell full"><div class="card"><h3>Sugestões rápidas</h3><div class="prompt-list"><button class="prompt-btn" onclick="askAI('Qual foi o melhor mês deste ano?')">Qual foi o melhor mês deste ano?</button><button class="prompt-btn" onclick="askAI('Quanto gastámos por fornecedor?')">Quanto gastámos por fornecedor?</button><button class="prompt-btn" onclick="askAI('Compara este mês com o mesmo mês do ano passado.')">Compara este mês com o mesmo mês do ano passado.</button><button class="prompt-btn" onclick="askAI('Qual foi a margem líquida acumulada?')">Qual foi a margem líquida acumulada?</button><button class="prompt-btn" onclick="askAI('Que despesas estão acima da média?')">Que despesas estão acima da média?</button></div><div class="screen-note">Na app final, este assistente vai ligar à base de dados e responder apenas com dados reais importados ou lançados.</div></div><div class="card chat-card"><div class="chat-window" id="chatWindow"><div class="msg ai"><b>Assistente Dona Maria Deck</b><br>Estou pronto para analisar os dados do restaurante. Nesta versão, as respostas são demonstrativas; na app final serão calculadas pela base de dados.</div><div class="msg ai">Exemplo: a faturação acumulada de 2026 está acima de 2025 e os fornecedores devem ser acompanhados por tendência de subida.</div></div><div class="chat-input"><input id="aiInput" placeholder="Faça uma pergunta sobre o restaurante..."><button class="btn primary" onclick="askAI()">Analisar</button></div></div></div></div></section>
-<section id="configuracoes" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Configurações</h2><p>Área de administração da aplicação: listas, utilizadores, segurança e backup.</p></div><span class="tag">Administração</span></div></div><div class="settings-grid full"><div class="card"><h3>Listas</h3><div class="setting-list"><div class="setting-row"><span>Fornecedores ativos</span><b id="cfgCountFornecedores">—</b></div><div class="setting-row"><span>Funcionários</span><b id="cfgCountFuncionarios">—</b></div><div class="setting-row"><span>Despesas fixas</span><b id="cfgCountDespesasFixas">—</b></div><div class="setting-row"><span>Categorias de investimento</span><b>6</b></div></div><div class="screen-note" id="cfgListStatus">As listas são carregadas automaticamente do Supabase.</div><div class="settings-actions"><button class="btn" onclick="loadListsFromSupabase()">Atualizar listas</button><button class="btn" onclick="openListManager('fornecedores')">Gerir fornecedores</button><button class="btn" onclick="openListManager('funcionarios')">Gerir funcionários</button><button class="btn" onclick="openListManager('despesas')">Gerir despesas fixas</button></div><div class="list-manager" id="cfgListManager"><div class="list-manager-title"><h4 id="cfgListManagerTitle">Gerir lista</h4><span class="tag" id="cfgListManagerTable">Supabase</span></div><form class="form" onsubmit="saveListItem(event)"><div class="field"><label id="cfgListInputLabel">Nome</label><input id="cfgListInput" required autocomplete="off" placeholder="Novo item da lista"></div><button class="btn primary" type="submit">Adicionar</button></form><div class="screen-note" id="cfgListManagerStatus">Escolhe uma lista para gerir.</div><div class="list-items" id="cfgListItems"></div></div></div><div class="card"><h3>Utilizadores</h3><div class="role-grid"><div class="role-card"><h4>Administrador</h4><p>Controlo total, importação, apagar e exportar.</p></div><div class="role-card"><h4>Gerente</h4><p>Introduzir, consultar e analisar dados.</p></div><div class="role-card"><h4>Consulta</h4><p>Acesso apenas a dashboards e relatórios.</p></div></div></div><div class="card"><h3>Segurança e backup</h3><div class="setting-list"><div class="setting-row"><span><span class="status-dot"></span>Base de dados online</span><b>Preparado</b></div><div class="setting-row"><span><span class="status-dot warn"></span>Último backup</span><b id="cfgLastBackup">A carregar...</b></div><div class="setting-row"><span>Exportação geral</span><b>Excel / CSV</b></div></div><div class="settings-actions"><button class="btn primary">Exportar dados</button><button class="btn">Ver backups</button></div></div></div></div></section>
+<section id="configuracoes" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Configurações</h2><p>Área de administração da aplicação: listas, utilizadores, segurança e backup.</p></div><span class="tag">Administração</span></div></div><div class="settings-grid full"><div class="card"><h3>Listas</h3><div class="setting-list"><div class="setting-row"><span>Fornecedores ativos</span><b id="cfgCountFornecedores">—</b></div><div class="setting-row"><span>Funcionários</span><b id="cfgCountFuncionarios">—</b></div><div class="setting-row"><span>Despesas fixas</span><b id="cfgCountDespesasFixas">—</b></div><div class="setting-row"><span>Categorias de investimento</span><b>6</b></div></div><div class="screen-note" id="cfgListStatus">As listas são carregadas automaticamente do Supabase.</div><div class="settings-actions"><button class="btn" onclick="loadListsFromSupabase()">Atualizar listas</button><button class="btn" onclick="openListManager('fornecedores')">Gerir fornecedores</button><button class="btn" onclick="openListManager('funcionarios')">Gerir funcionários</button><button class="btn" onclick="openListManager('despesas')">Gerir despesas fixas</button></div><div class="list-manager" id="cfgListManager"><div class="list-manager-title"><h4 id="cfgListManagerTitle">Gerir lista</h4><span class="tag" id="cfgListManagerTable">Supabase</span></div><form class="form" onsubmit="saveListItem(event)"><div class="field"><label id="cfgListInputLabel">Nome</label><input id="cfgListInput" required autocomplete="off" placeholder="Novo item da lista"></div><button class="btn primary" type="submit">Adicionar</button></form><div class="screen-note" id="cfgListManagerStatus">Escolhe uma lista para gerir.</div><div class="list-items" id="cfgListItems"></div></div></div><div class="card"><h3>Utilizadores</h3><div class="role-grid"><div class="role-card"><h4>Administrador</h4><p>Controlo total, importação, apagar e exportar.</p></div><div class="role-card"><h4>Gerente</h4><p>Introduzir, consultar e analisar dados.</p></div><div class="role-card"><h4>Consulta</h4><p>Acesso apenas a dashboards e relatórios.</p></div></div></div><div class="card"><h3>Segurança e backup</h3><div class="setting-list"><div class="setting-row"><span><span class="status-dot"></span>Base de dados online</span><b>Preparado</b></div><div class="setting-row"><span><span class="status-dot warn"></span>Versão atual</span><b id="cfgLastBackup">A carregar...</b></div><div class="setting-row"><span>Exportação geral</span><b>Excel / CSV</b></div></div><div class="settings-actions"><button class="btn primary" onclick="exportRestaurantData()">Exportar dados</button><button class="btn">Ver backups</button></div></div></div></div></section>
 
 <section id="importar" class="section"><div class="card importbox"><h3>Importação do histórico Excel</h3><p>Aqui a app vai converter o Excel antigo em tabelas limpas: faturação diária, fornecedores, pessoal, fixas, investimentos e categorias.</p><input type="file" accept=".xls,.xlsx,.xlsb,.csv"><br><br><button class="btn primary">Simular validação</button></div></section>
 </main><aside class="side"><div class="brand"><img class="logo brand-logo" src="icons/icon-512.png" alt="Dona Maria Deck"><div><h1>Dona Maria Deck</h1><p>Gestão Inteligente</p></div></div><nav class="nav side-home"><button data-page="inicio" onclick="show('inicio')">Início</button></nav><div class="nav-title">Introduzir</div><nav class="nav" id="navInputs"></nav><div class="nav-title">Consultar</div><nav class="nav" id="navReports"></nav><div style="margin-top:14px;font-size:10px;color:rgba(255,255,255,.45);text-align:center;letter-spacing:.08em;">V61.2</div></aside></div><div class="phonebar" id="phonebar"></div>
 <script>
 const SUPABASE_URL='https://hrlfwpwzciljwpgejmha.supabase.co';
 const SUPABASE_PUBLIC_KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
+const APP_VERSION='2026.06.25-19:32';
 const db=window.supabase ? window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLIC_KEY) : null;
 const RESTAURANT_TABLES=['faturacao_historica','faturacao_diaria','fornecedores_historico','ordenados','despesas_fixas','investimentos'];
 let restaurantDataCache=null;
@@ -848,9 +849,62 @@ function formatDateTimePT(date){
 function updateBackupTimestamp(){
   const el=document.getElementById('cfgLastBackup');
   if(!el) return;
-  const parsed=new Date(document.lastModified);
-  el.textContent=!isNaN(parsed)?formatDateTimePT(parsed):formatDateTimePT(new Date());
+  el.textContent=APP_VERSION;
 }
+
+function csvEscape(value){
+  if(value===null||value===undefined) return '';
+  const s=String(value).replace(/\r?\n/g,' ');
+  return /[",;\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+}
+
+function downloadTextFile(filename,content,type='text/csv;charset=utf-8'){
+  const blob=new Blob(['\ufeff'+content],{type});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download=filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function buildExportCsv(data){
+  const tableLabels={
+    faturacao_historica:'Faturação histórica',
+    faturacao_diaria:'Faturação diária',
+    fornecedores_historico:'Fornecedores',
+    ordenados:'Ordenados',
+    despesas_fixas:'Despesas fixas',
+    investimentos:'Investimentos'
+  };
+  const tables=RESTAURANT_TABLES.filter(table=>Array.isArray(data[table]));
+  const columns=['Tabela',...new Set(tables.flatMap(table=>(data[table]||[]).flatMap(row=>Object.keys(row||{}))))];
+  const lines=[columns.map(csvEscape).join(';')];
+  tables.forEach(table=>{
+    (data[table]||[]).forEach(row=>{
+      const out={Tabela:tableLabels[table]||table,...row};
+      lines.push(columns.map(col=>csvEscape(out[col])).join(';'));
+    });
+  });
+  return lines.join('\n');
+}
+
+async function exportRestaurantData(){
+  try{
+    notify('A preparar exportação dos dados...','info');
+    const data=await loadRestaurantData(true);
+    const csv=buildExportCsv(data);
+    const stamp=APP_VERSION.replace(/[^\d]/g,'').slice(0,12);
+    downloadTextFile(`dona-maria-deck-export-${stamp}.csv`,csv);
+    notify('Exportação CSV descarregada.','good');
+  }catch(error){
+    console.error(error);
+    notify('Erro ao exportar dados: '+(error.message||String(error)),'bad',6500);
+  }
+}
+window.exportRestaurantData=exportRestaurantData;
 function runIfExists(name){
   try{ if(typeof window[name]==='function') return window[name](); }catch(e){ console.warn('Erro ao atualizar '+name,e); }
   return null;
