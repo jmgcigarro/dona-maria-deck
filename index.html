@@ -541,6 +541,8 @@ async function fetchTableRows(table){
 async function loadRestaurantData(force=false){
   if(restaurantDataCache && !force) return restaurantDataCache;
   if(restaurantDataPromise && !force) return restaurantDataPromise;
+  const sessionInfo=db?.auth?.getSession ? await db.auth.getSession().catch(()=>null) : null;
+  if(!sessionInfo?.data?.session && !force) throw new Error('Sessão Supabase ainda não está pronta para carregar dados.');
   restaurantDataPromise=Promise.all(RESTAURANT_TABLES.map(fetchTableRows)).then(rows=>{
     const data={loadedAt:new Date()};
     RESTAURANT_TABLES.forEach((table,i)=>{data[table]=rows[i]||[];});
@@ -2381,6 +2383,8 @@ build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Inves
     if(login) login.style.display='none';
   }
   async function refreshAfterLogin(){
+    try{ if(typeof invalidateRestaurantData==='function') invalidateRestaurantData(); }catch(e){console.warn('V58 limpar cache após login',e);}
+    try{ if(typeof loadRestaurantData==='function') await loadRestaurantData(true); }catch(e){console.warn('V58 cache dados após login',e);}
     try{ if(typeof loadListsFromSupabase==='function') await loadListsFromSupabase(); }catch(e){console.warn('V58 listas após login',e);}
     try{ if(typeof loadFaturacaoAtualReal==='function') await loadFaturacaoAtualReal(); }catch(e){console.warn('V58 faturação atual após login',e);}
     try{ if(typeof loadV39==='function') await loadV39(); }catch(e){console.warn('V58 dados após login',e);}
