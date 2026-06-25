@@ -527,16 +527,18 @@ async function saveFaturacaoDiariaOnline(dateStr,valor){
     "Dia":d.dia,
     "Valor":valor
   };
-  const {error}=await db.from('faturacao_diaria').insert([payload]);
+  const {data,error}=await db.from('faturacao_diaria').insert([payload]).select('*').single();
   if(error) throw error;
+  return data||payload;
 }
 
 function currentYear(){ return new Date().getFullYear(); }
 
 async function insertOnline(table,payload){
   if(!db) throw new Error('Supabase não carregou no browser.');
-  const {error}=await db.from(table).insert([payload]);
+  const {data,error}=await db.from(table).insert([payload]).select('*').single();
   if(error) throw error;
+  return data||payload;
 }
 
 function normalizeKey(value){
@@ -801,52 +803,58 @@ async function launchRecord(ev){
 
   try{
     if(f.dataset.type==='Faturação'){
-      await saveFaturacaoDiariaOnline(date,val);
-      records.unshift({id:Date.now(),type:'Faturação',date,cat,desc:'Gravado no Supabase',value:val});
+      const onlineRow=await saveFaturacaoDiariaOnline(date,val);
+      const d=getAnoMesDiaFromDate(date);
+      const payload={"Data":date,"Ano":d.ano,"Mês":d.mes,"Dia":d.dia,"Valor":val};
+      records.unshift({id:Date.now(),type:'Faturação',date,cat,desc:'Gravado no Supabase',value:val,online:{table:'faturacao_diaria',payload,row:onlineRow}});
 
     }else if(f.dataset.type==='Fornecedor'){
       const d=getAnoMesDiaFromDate(date);
-      await insertOnline('fornecedores_historico',{
+      const payload={
         "Ano":d.ano,
         "Mês":d.mes,
         "Fornecedor":cat,
         "Valor":val
-      });
-      records.unshift({id:Date.now(),type:'Fornecedor',date,cat,desc:'Gravado no Supabase',value:val});
+      };
+      const onlineRow=await insertOnline('fornecedores_historico',payload);
+      records.unshift({id:Date.now(),type:'Fornecedor',date,cat,desc:'Gravado no Supabase',value:val,online:{table:'fornecedores_historico',payload,row:onlineRow}});
 
     }else if(f.dataset.type==='Ordenados'){
       const mes=fd.get('mes');
       await assertNoOrdenadoDuplicate(currentYear(),mes,cat);
-      await insertOnline('ordenados',{
+      const payload={
         "Ano":currentYear(),
         "Mês":mes,
         "Funcionário":cat,
         "Valor":val
-      });
-      records.unshift({id:Date.now(),type:'Ordenados',date:mes,cat,desc:'Gravado no Supabase',value:val});
+      };
+      const onlineRow=await insertOnline('ordenados',payload);
+      records.unshift({id:Date.now(),type:'Ordenados',date:mes,cat,desc:'Gravado no Supabase',value:val,online:{table:'ordenados',payload,row:onlineRow}});
 
     }else if(f.dataset.type==='Fixa'){
       const mes=fd.get('mes');
       await assertNoDespesaFixaDuplicate(currentYear(),mes,cat);
-      await insertOnline('despesas_fixas',{
+      const payload={
         "Ano":currentYear(),
         "Mês":mes,
         "Tipo":cat,
         "Valor":val
-      });
-      records.unshift({id:Date.now(),type:'Despesa fixa',date:mes,cat,desc:'Gravado no Supabase',value:val});
+      };
+      const onlineRow=await insertOnline('despesas_fixas',payload);
+      records.unshift({id:Date.now(),type:'Despesa fixa',date:mes,cat,desc:'Gravado no Supabase',value:val,online:{table:'despesas_fixas',payload,row:onlineRow}});
 
     }else if(f.dataset.type==='Investimento'){
       const months=Number(fd.get('amortizacao')||1);
       const mensal=months?val/months:val;
       desc=`${cat} · ${months} ${months===1?'mês':'meses'} · ${fmt.format(mensal)}/mês`;
-      await insertOnline('investimentos',{
+      const payload={
         "Data":date,
         "Descrição":cat,
         "Valor Total":val,
         "Meses Amortização":months
-      });
-      records.unshift({id:Date.now(),type:'Investimento',date,cat,desc:'Gravado no Supabase · '+desc,value:val,months,monthly:mensal});
+      };
+      const onlineRow=await insertOnline('investimentos',payload);
+      records.unshift({id:Date.now(),type:'Investimento',date,cat,desc:'Gravado no Supabase · '+desc,value:val,months,monthly:mensal,online:{table:'investimentos',payload,row:onlineRow}});
     }
 
     localStorage.setItem('dm_records_v4',JSON.stringify(records));
@@ -871,7 +879,64 @@ async function launchRecord(ev){
     }
   }
 }
-function deleteRecord(id){if(!confirm('Apagar este registo?'))return;records=records.filter(r=>r.id!==id);localStorage.setItem('dm_records_v4',JSON.stringify(records));renderRecords();}
+function inferOnlineRecord(record){
+  if(record.online?.table && record.online?.payload) return record.online;
+  const value=Number(record.value)||0;
+  if(record.type==='Faturação' && record.date){
+    const d=getAnoMesDiaFromDate(record.date);
+    return {table:'faturacao_diaria',payload:{"Data":record.date,"Ano":d.ano,"Mês":d.mes,"Dia":d.dia,"Valor":value}};
+  }
+  if(record.type==='Fornecedor' && record.date){
+    const d=getAnoMesDiaFromDate(record.date);
+    return {table:'fornecedores_historico',payload:{"Ano":d.ano,"Mês":d.mes,"Fornecedor":record.cat,"Valor":value}};
+  }
+  if(record.type==='Ordenados'){
+    return {table:'ordenados',payload:{"Ano":currentYear(),"Mês":record.date,"Funcionário":record.cat,"Valor":value}};
+  }
+  if(record.type==='Despesa fixa'){
+    return {table:'despesas_fixas',payload:{"Ano":currentYear(),"Mês":record.date,"Tipo":record.cat,"Valor":value}};
+  }
+  if(record.type==='Investimento' && record.date){
+    return {table:'investimentos',payload:{"Data":record.date,"Descrição":record.cat,"Valor Total":value,"Meses Amortização":Number(record.months||1)}};
+  }
+  return null;
+}
+
+async function deleteOnlineRecord(record){
+  if(!db) throw new Error('Supabase não carregou no browser.');
+  const spec=inferOnlineRecord(record);
+  if(!spec) throw new Error('Este registo não tem informação suficiente para apagar no Supabase.');
+  const row=spec.row||{};
+  const rowId=row.id ?? row.ID ?? row.Id;
+  let query=db.from(spec.table).delete();
+  if(rowId!==undefined && rowId!==null){
+    query=query.eq(Object.prototype.hasOwnProperty.call(row,'id')?'id':Object.prototype.hasOwnProperty.call(row,'ID')?'ID':'Id',rowId);
+  }else{
+    Object.entries(spec.payload).forEach(([column,value])=>{query=query.eq(column,value);});
+  }
+  const {error}=await query;
+  if(error) throw error;
+}
+
+async function deleteRecord(id){
+  const record=records.find(r=>r.id===id);
+  if(!record) return;
+  if(!confirm('Apagar este registo também da base de dados?')) return;
+  try{
+    await deleteOnlineRecord(record);
+    records=records.filter(r=>r.id!==id);
+    localStorage.setItem('dm_records_v4',JSON.stringify(records));
+    renderRecords();
+    loadFaturacaoAtualReal();
+    loadResultadosReais();
+    loadV39();
+    if(typeof loadResumoAlertasV611==='function') loadResumoAlertasV611();
+  }catch(error){
+    console.error(error);
+    const msg=error.message||String(error);
+    alert(msg.includes('row-level security') ? 'O Supabase bloqueou o apagamento por RLS. É preciso criar policies de DELETE para estas tabelas.' : 'Erro ao apagar no Supabase: '+msg);
+  }
+}
 function renderRecords(){const rows=records.map(r=>`<tr><td><span class="tag">${r.type}</span></td><td>${r.date||'—'}</td><td>${r.cat}${r.desc&&r.desc!==r.cat?' · '+r.desc:''}</td><td class="money"><b>${fmt.format(r.value)}</b></td><td><button class="delete" onclick="deleteRecord(${r.id})">Apagar</button></td></tr>`).join('');allRecords.innerHTML=rows||'<tr><td colspan="5" class="empty">Ainda não existem registos lançados nesta versão do protótipo.</td></tr>';}
 function makeBars(id,vals,labels,mode='gold'){const el=document.getElementById(id);if(!el)return;el.innerHTML='';const max=Math.max(...vals,1);const isLarge=el.classList.contains('chart-large');const maxH=isLarge?245:165;const minH=isLarge?62:34;vals.forEach((v,i)=>{const d=document.createElement('div');d.className='bar '+(mode==='red'&&i%2?'red':mode==='blue'?'blue':'');d.style.height=(minH+v/max*maxH)+'px';d.title=(labels[i]?('Dia '+labels[i]+' · '):'')+fmt.format(id==='chartDias'?v*1000:v*1000);d.innerHTML='<span>'+labels[i]+'</span>';el.appendChild(d);});}
 function makeSignedBars(id,vals,labels){
