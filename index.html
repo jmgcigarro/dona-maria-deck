@@ -2641,6 +2641,10 @@ build();document.querySelectorAll('form[data-type="Investimento"]').forEach(upda
     }
     addExp(forn,'Fornecedores','Fornecedor'); addExp(ord,'Ordenados','Funcionário'); addExp(fix,'Despesas Fixas','Tipo');
     inv.forEach(r=>invMonths(r).forEach(x=>{const k=monthKey(x.ano,x.mes);add(despesas,k,x.valor);add(buckets.Amortizações,k,x.valor);}));
+    const fornecedoresAll={}, fixasAll={}, ordenadosAll={};
+    forn.forEach(r=>{const y=Number(get(r,['Ano','ano']));const m=monthIndex(get(r,['Mês','mes']));const nome=String(get(r,['Fornecedor','fornecedor'])||'—');const v=Number(get(r,['Valor','valor'])||0);if(y&&m>=0)add(fornecedoresAll[monthKey(y,m)]||(fornecedoresAll[monthKey(y,m)]={}),nome,v);});
+    fix.forEach(r=>{const y=Number(get(r,['Ano','ano']));const m=monthIndex(get(r,['Mês','mes']));const tipo=String(get(r,['Tipo','tipo'])||'—');const v=Number(get(r,['Valor','valor'])||0);if(!isTotal(tipo)&&y&&m>=0)add(fixasAll[monthKey(y,m)]||(fixasAll[monthKey(y,m)]={}),tipo,v);});
+    ord.forEach(r=>{const y=Number(get(r,['Ano','ano']));const m=monthIndex(get(r,['Mês','mes']));const nome=String(get(r,['Funcionário','Funcionário/a','Funcionario','funcionario'])||'—');const v=Number(get(r,['Valor','valor'])||0);if(y&&m>=0)add(ordenadosAll[monthKey(y,m)]||(ordenadosAll[monthKey(y,m)]={}),nome,v);});
     const monthly=MESES.map((m,i)=>{const k=monthKey(currentYear,i);const fat=faturacao[k]||0;const desp=despesas[k]||0;const lucro=fat-desp;return {ano:currentYear,mes:m,mi:i,fat,desp,lucro,margem:fat?lucro/fat*100:null};});
     const currentRows=fatDia.filter(r=>{const ds=get(r,['Data','data']);const d=ds?new Date(String(ds)+'T00:00:00'):null;const v=Number(get(r,['Valor','valor'])||0);return d&&!isNaN(d)&&d.getFullYear()===currentYear&&d.getMonth()===currentMonth&&v>0;});
     const fatAtual=sum(currentRows.map(r=>Number(get(r,['Valor','valor'])||0)));
@@ -2652,17 +2656,60 @@ build();document.querySelectorAll('form[data-type="Investimento"]').forEach(upda
     forn.forEach(r=>{const y=Number(get(r,['Ano','ano']));const m=monthIndex(get(r,['Mês','mes']));if(y===currentYear&&m>=0&&m<=currentMonth){add(fornecedoresYtd,String(get(r,['Fornecedor','fornecedor'])||'—'),Number(get(r,['Valor','valor'])||0));}});
     const fixasYtd={};
     fix.forEach(r=>{const tipo=String(get(r,['Tipo','tipo'])||'—');const y=Number(get(r,['Ano','ano']));const m=monthIndex(get(r,['Mês','mes']));if(!isTotal(tipo)&&y===currentYear&&m>=0&&m<=currentMonth){add(fixasYtd,tipo,Number(get(r,['Valor','valor'])||0));}});
-    aiCache={currentYear,currentMonth,currentMonthName:MESES[currentMonth],monthly,fatAtual,diasObs,diasMes,mediaDia,fatEstimada,fornecedoresYtd,fixasYtd,buckets,fatHist,fatDia,forn,ord,fix,inv};
+    aiCache={currentYear,currentMonth,currentMonthName:MESES[currentMonth],monthly,fatAtual,diasObs,diasMes,mediaDia,fatEstimada,fornecedoresYtd,fixasYtd,buckets,faturacao,despesas,fornecedoresAll,fixasAll,ordenadosAll,fatHist,fatDia,forn,ord,fix,inv};
     return aiCache;
   }
   function rankObj(obj){return Object.entries(obj).sort((a,b)=>b[1]-a[1]);}
+  function extractPeriod(q,d){
+    const nq=norm(q);
+    let year=null;
+    const yearMatch=nq.match(/\b(20\d{2}|19\d{2})\b/);
+    if(yearMatch) year=Number(yearMatch[1]);
+    else if(nq.includes('ano passado')) year=d.currentYear-1;
+    else if(nq.includes('este ano')||nq.includes('ano atual')||nq.includes('actual')) year=d.currentYear;
+    let month=null;
+    MESES.forEach((m,i)=>{
+      const nm=norm(m);
+      if(nq.includes(nm) || nq.includes(nm.slice(0,3))) month=i;
+    });
+    if(nq.includes('este mes')||nq.includes('este mês')||nq.includes('mes atual')||nq.includes('mês atual')) month=d.currentMonth;
+    if(nq.includes('mes passado')||nq.includes('mês passado')){month=d.currentMonth-1; year=year||d.currentYear; if(month<0){month=11;year--;}}
+    return {year,month,hasYear:year!==null,hasMonth:month!==null};
+  }
+  function periodLabel(period,d){
+    if(period.hasMonth&&period.hasYear)return `${MESES[period.month]} de ${period.year}`;
+    if(period.hasYear)return `o ano de ${period.year}`;
+    if(period.hasMonth)return `${MESES[period.month]} de ${d.currentYear}`;
+    return `até ${d.currentMonthName} de ${d.currentYear}`;
+  }
+  function sumMapForPeriod(map,period,d){
+    const year=period.hasYear?period.year:d.currentYear;
+    if(period.hasMonth)return map[monthKey(year,period.month)]||0;
+    const limit=year===d.currentYear?d.currentMonth:11;
+    let total=0;
+    for(let i=0;i<=limit;i++) total+=map[monthKey(year,i)]||0;
+    return total;
+  }
+  function rankNestedForPeriod(nested,period,d){
+    const year=period.hasYear?period.year:d.currentYear;
+    const result={};
+    const addObj=obj=>Object.entries(obj||{}).forEach(([k,v])=>add(result,k,v));
+    if(period.hasMonth)addObj(nested[monthKey(year,period.month)]);
+    else{
+      const limit=year===d.currentYear?d.currentMonth:11;
+      for(let i=0;i<=limit;i++) addObj(nested[monthKey(year,i)]);
+    }
+    return rankObj(result);
+  }
   function findSupplierQuestion(q,d){
     const nq=norm(q);
-    const names=Object.keys(d.fornecedoresYtd).sort((a,b)=>b.length-a.length);
+    const names=[...new Set([...(Object.keys(d.fornecedoresYtd||{})),...Object.values(d.fornecedoresAll||{}).flatMap(obj=>Object.keys(obj||{}))])].sort((a,b)=>b.length-a.length);
     return names.find(n=>nq.includes(norm(n)));
   }
   function answerFromData(q,d){
     const nq=norm(q);
+    const period=extractPeriod(q,d);
+    const label=periodLabel(period,d);
     const monthsUntil=d.monthly.slice(0,d.currentMonth+1);
     const fatYtd=sum(monthsUntil.map(x=>x.fat));
     const despYtd=sum(monthsUntil.map(x=>x.desp));
@@ -2671,31 +2718,48 @@ build();document.querySelectorAll('form[data-type="Investimento"]').forEach(upda
     const best=monthsUntil.reduce((a,b)=>b.fat>a.fat?b:a,monthsUntil[0]||{mes:'—',fat:0});
     const supplier=findSupplierQuestion(q,d);
 
+    if((nq.includes('faturacao') || nq.includes('facturacao') || nq.includes('vendas') || nq.includes('venda')) && !nq.includes('estimad') && !nq.includes('previs')){
+      const fat=sumMapForPeriod(d.faturacao,period,d);
+      const desp=sumMapForPeriod(d.despesas,period,d);
+      const res=fat-desp;
+      const margem=fat?res/fat*100:null;
+      const extra=desp?`<br>Despesas no mesmo período: <b>${EUR.format(desp)}</b>. Resultado: <b>${EUR.format(res)}</b>. Margem: <b>${pct(margem)}</b>.`:'';
+      return `<b>Faturação — ${label}</b><br>A faturação registada foi <b>${EUR.format(fat)}</b>.${extra}${fat?'':'<br>Não encontrei faturação registada para esse período.'}`;
+    }
     if(nq.includes('melhor') && (nq.includes('mes')||nq.includes('mês'))){
-      return `<b>Melhor mês do ano atual</b><br>Até ${d.currentMonthName}, o melhor mês é <b>${best.mes}</b>, com <b>${EUR.format(best.fat)}</b> de faturação.`;
+      const year=period.hasYear?period.year:d.currentYear;
+      const limit=year===d.currentYear?d.currentMonth:11;
+      const months=MESES.slice(0,limit+1).map((m,i)=>({mes:m,fat:d.faturacao[monthKey(year,i)]||0}));
+      const bestPeriod=months.reduce((a,b)=>b.fat>a.fat?b:a,months[0]||{mes:'—',fat:0});
+      return `<b>Melhor mês de ${year}</b><br>O melhor mês é <b>${bestPeriod.mes}</b>, com <b>${EUR.format(bestPeriod.fat)}</b> de faturação.`;
     }
     if(supplier){
-      const total=d.fornecedoresYtd[supplier]||0;
-      const totalSup=sum(Object.values(d.fornecedoresYtd));
-      return `<b>${supplier}</b><br>Em ${d.currentYear}, até ${d.currentMonthName}, gastaste <b>${EUR.format(total)}</b> neste fornecedor.${totalSup?` Isso representa <b>${pct(total/totalSup*100)}</b> do total de fornecedores.`:''}`;
+      const ranking=rankNestedForPeriod(d.fornecedoresAll,period,d);
+      const row=ranking.find(([name])=>norm(name)===norm(supplier));
+      const total=row?row[1]:0;
+      const totalSup=sum(ranking.map(x=>x[1]));
+      return `<b>${supplier} — ${label}</b><br>Gastaste <b>${EUR.format(total)}</b> neste fornecedor.${totalSup?` Isso representa <b>${pct(total/totalSup*100)}</b> do total de fornecedores do período.`:''}`;
     }
     if(nq.includes('fornecedor')){
-      const ranking=rankObj(d.fornecedoresYtd);
+      const ranking=rankNestedForPeriod(d.fornecedoresAll,period,d);
       const total=sum(ranking.map(x=>x[1]));
       const linhas=ranking.slice(0,5).map(([n,v],i)=>`${i+1}. <b>${n}</b>: ${EUR.format(v)} ${total?`(${pct(v/total*100)})`:''}`).join('<br>');
-      return `<b>Top fornecedores — ${d.currentYear} até ${d.currentMonthName}</b><br>${linhas||'Ainda não existem dados de fornecedores para este período.'}`;
+      return `<b>Top fornecedores — ${label}</b><br>${linhas||'Ainda não existem dados de fornecedores para este período.'}`;
     }
     if(nq.includes('margem') || nq.includes('lucro') || nq.includes('resultado')){
-      return `<b>Resultado acumulado</b><br>Até ${d.currentMonthName}, a faturação acumulada é <b>${EUR.format(fatYtd)}</b>, as despesas são <b>${EUR.format(despYtd)}</b> e o resultado estimado acumulado é <b>${EUR.format(lucroYtd)}</b>.<br>Margem acumulada: <b>${pct(margemYtd)}</b>.`;
+      const fat=period.hasYear||period.hasMonth?sumMapForPeriod(d.faturacao,period,d):fatYtd;
+      const desp=period.hasYear||period.hasMonth?sumMapForPeriod(d.despesas,period,d):despYtd;
+      const lucro=fat-desp;
+      const margem=fat?lucro/fat*100:null;
+      return `<b>Resultado — ${period.hasYear||period.hasMonth?label:'acumulado'}</b><br>Faturação: <b>${EUR.format(fat)}</b>.<br>Despesas: <b>${EUR.format(desp)}</b>.<br>Resultado: <b>${EUR.format(lucro)}</b>.<br>Margem: <b>${pct(margem)}</b>.`;
     }
     if(nq.includes('estimad') || nq.includes('previs')){
       return `<b>Faturação estimada — ${d.currentMonthName}</b><br>Com ${d.diasObs} dias observados, a média diária é <b>${EUR.format(d.mediaDia)}</b>. A estimativa para o mês completo é <b>${EUR.format(d.fatEstimada)}</b>.`;
     }
     if(nq.includes('despesa') || nq.includes('custo') || nq.includes('acima da media') || nq.includes('acima da média')){
-      const custos={Fornecedores:0,Ordenados:0,'Despesas Fixas':0,Amortizações:0};
-      Object.entries(d.buckets).forEach(([cat,map])=>{Object.entries(map).forEach(([k,v])=>{const y=Number(k.slice(0,4));const m=Number(k.slice(5,7))-1;if(y===d.currentYear&&m<=d.currentMonth)custos[cat]+=Number(v)||0;});});
+      const custos={Fornecedores:sumMapForPeriod(d.buckets.Fornecedores,period,d),Ordenados:sumMapForPeriod(d.buckets.Ordenados,period,d),'Despesas Fixas':sumMapForPeriod(d.buckets['Despesas Fixas'],period,d),Amortizações:sumMapForPeriod(d.buckets.Amortizações,period,d)};
       const ranking=rankObj(custos);
-      return `<b>Peso dos custos — ${d.currentYear} até ${d.currentMonthName}</b><br>${ranking.map(([n,v])=>`<b>${n}</b>: ${EUR.format(v)}`).join('<br>')}`;
+      return `<b>Peso dos custos — ${label}</b><br>${ranking.map(([n,v])=>`<b>${n}</b>: ${EUR.format(v)}`).join('<br>')}`;
     }
     if(nq.includes('compara') || nq.includes('ano passado') || nq.includes('2025')){
       const cur=monthsUntil[d.currentMonth]?.fat||0;
