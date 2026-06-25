@@ -2146,7 +2146,7 @@ build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Inves
       const months=d.monthly.slice(0,d.month+1);
       renderBarsV49('chartAnalisesFat',months.map(x=>x.fat/1000),months.map(x=>x.short),'gold');
       const filterMap=d.despBuckets[analisesExpenseFilter]||{};
-      const expenseVals=months.map(x=>filterMap[key(x.ano,x.mi)]||0);
+      const expenseVals=months.map((x,i)=>filterMap[key(d.year,i)]||0);
       renderBarsV49('chartAnalisesDesp',expenseVals.map(v=>v/1000),months.map(x=>x.short),'blue');
       setText('analisesDespTitle',`Evolução das despesas — ${analisesExpenseFilter}`);
       document.querySelectorAll('[data-expense-filter]').forEach(btn=>btn.classList.toggle('active',btn.dataset.expenseFilter===analisesExpenseFilter));
