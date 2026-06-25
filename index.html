@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Dona Maria Deck · V58 Login e Perfis</title>
 
 <link rel="manifest" href="manifest.json">
@@ -203,6 +203,52 @@ h1,h2,h3,h4,p,label,span,b,small{min-width:0}
   .cover-title{letter-spacing:.04em;font-size:clamp(34px,12vw,46px)}
   .cover-subtitle{letter-spacing:.18em}
   .info-card b{white-space:normal}
+}
+
+/* Mobile compacto — reduz densidade visual sem mexer na lógica */
+@media(max-width:560px){
+  body{font-size:14px}
+  .main{padding:8px 8px 76px}
+  .grid,.settings-grid,.analysis-grid,.info-cards,.dashboard-note,.home-mini-kpis{gap:9px!important}
+  .top{gap:8px;margin-bottom:10px}
+  .top h2{font-size:22px!important;line-height:1.12}
+  .top p{font-size:12px;line-height:1.35;margin-top:4px}
+  .card,.entry-card,.big-total,.mini-kpi,.info-card,.quote-card{padding:11px!important;border-radius:13px!important}
+  .card h3,.entry-head h3{font-size:17px!important;line-height:1.15;margin-bottom:8px}
+  .metric small,.mini-kpi small,.big-total small{font-size:10px;line-height:1.2}
+  .metric b,.mini-kpi b{font-size:20px!important;margin-top:5px}
+  .big-total b{font-size:26px!important;margin-top:5px}
+  .delta,.screen-note,.alert{font-size:12px;line-height:1.35}
+  .alert{padding:10px;border-radius:11px}
+  .btn,.pill,.prompt-btn{padding:8px 10px!important;border-radius:10px!important;font-size:12px!important}
+  .pillbar{gap:6px;margin-bottom:8px}
+  .field label{font-size:10px;margin-bottom:5px;height:auto;min-height:0}
+  .field input,.field select,.field textarea{height:40px;min-height:40px;line-height:40px;padding:0 10px;border-radius:10px;font-size:13px}
+  .form,.input-page .form,.input-page .form.two,.input-page .form.four{gap:10px!important}
+  .form-actions{gap:8px;padding-top:10px}
+  .table th,.table td{padding:7px 6px!important;font-size:11px!important}
+  .tag{padding:4px 7px;font-size:10px}
+  .chart{height:190px!important;gap:6px;padding:18px 4px 38px}
+  .chart-large{height:230px!important;padding:20px 4px 42px}
+  .chart::after{left:4px;right:4px;bottom:35px}
+  .chart-large::after{bottom:38px}
+  .bar{border-radius:8px 8px 0 0;min-height:16px}
+  .bar span{bottom:-27px!important;font-size:10px!important}
+  .supplier-card{gap:8px}
+  .role-grid{gap:8px}
+  .role-card{padding:10px;border-radius:12px}
+  .list-manager{padding:10px;border-radius:12px}
+  .list-items{max-height:170px}
+  .chat-shell{gap:9px}
+  .chat-card{min-height:360px}
+  .chat-window{padding:10px;border-radius:12px;gap:8px}
+  .msg{max-width:94%;padding:10px 11px;border-radius:12px;font-size:13px}
+  .chat-input{gap:7px;margin-top:8px}
+  .chat-input input{padding:10px;border-radius:10px;font-size:13px}
+  .phonebar{padding:6px 7px calc(6px + env(safe-area-inset-bottom));gap:5px}
+  .phonebar button{padding:8px 10px;font-size:11px;border-radius:9px}
+  .toast-host{right:10px;bottom:64px;width:calc(100vw - 20px)}
+  .toast{padding:10px 11px;border-radius:11px;font-size:12px}
 }
 
 
@@ -845,6 +891,23 @@ function addBtns(host,arr){arr.forEach(p=>{const b=document.createElement('butto
 function build(){bindCurrencyInputs();addBtns(navInputs,inputPages);addBtns(navReports,reportPages);addBtns(phonebar,[['inicio','Início',''],...inputPages.map(p=>[p[0],p[1].replace('Faturação Diária Restaurante','Faturação').replace('Despesas com Fornecedores','Fornecedores').replace('Despesas Fixas','Fixas').replace('Investimentos','Invest.'),p[2]]),...reportPages.map(p=>[p[0],p[1].replace('Resumo / Alertas','Resumo').replace('Faturação - Atual','Fat. Atual').replace('Faturação - Histórico','Fat. Hist.').replace('Despesas Fixas','Fixas').replace('Assistente IA','IA').replace('Configurações','Config.'),p[2]])]);document.querySelectorAll('select[name="mes"]').forEach(s=>{s.innerHTML=meses.map(m=>`<option>${m}</option>`).join('')});renderRecords();updateNav('inicio');loadListsFromSupabase();}
 function show(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');const p=pages.find(x=>x[0]===id)||['resumo','Resumo',''];title.textContent=p[1];subtitle.textContent=p[2];updateNav(id);window.scrollTo({top:0,behavior:'smooth'});}
 function updateNav(id){document.querySelectorAll('button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===id));}
+function installZoomLock(){
+  document.addEventListener('wheel',ev=>{
+    if(ev.ctrlKey || ev.metaKey) ev.preventDefault();
+  },{passive:false});
+  document.addEventListener('keydown',ev=>{
+    const key=String(ev.key||'').toLowerCase();
+    if((ev.ctrlKey||ev.metaKey) && ['+','=','-','_','0'].includes(key)){
+      ev.preventDefault();
+    }
+  });
+  ['gesturestart','gesturechange','gestureend'].forEach(type=>{
+    document.addEventListener(type,ev=>ev.preventDefault(),{passive:false});
+  });
+  document.addEventListener('touchmove',ev=>{
+    if(ev.touches && ev.touches.length>1) ev.preventDefault();
+  },{passive:false});
+}
 function formatDateTimePT(date){
   return date.toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(',','');
 }
@@ -1757,7 +1820,7 @@ async function loadV39(){
   await loadFaturacaoHistorico();
 }
 
-build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Investimento"]').forEach(updateAmortizacaoPreview);loadFaturacaoAtualReal();loadV39();
+build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('form[data-type="Investimento"]').forEach(updateAmortizacaoPreview);loadFaturacaoAtualReal();loadV39();
 </script>
 
 <script>
