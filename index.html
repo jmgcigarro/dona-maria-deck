@@ -458,8 +458,7 @@ body.auth-wait .app{display:none!important;}
     </div></div>
   </div>
 
-  <div class="card wide"><h3>Evolução das despesas por categoria</h3><div class="chart" id="chartAnalisesDesp"></div></div>
-  <div class="card wide"><h3>Margem líquida mensal</h3><div class="chart" id="chartAnalisesMargem"></div></div>
+  <div class="card full"><div class="supplier-card"><h3 id="analisesDespTitle">Evolução das despesas — Fornecedores</h3><div class="pillbar" id="analisesDespFilter"><button class="pill active" data-expense-filter="Fornecedores" onclick="setAnalisesExpenseFilter('Fornecedores')">Fornecedores</button><button class="pill" data-expense-filter="Ordenados" onclick="setAnalisesExpenseFilter('Ordenados')">Ordenados</button><button class="pill" data-expense-filter="Despesas Fixas" onclick="setAnalisesExpenseFilter('Despesas Fixas')">Despesas Fixas</button><button class="pill" data-expense-filter="Amortizações" onclick="setAnalisesExpenseFilter('Amortizações')">Amortizações</button></div></div><div class="chart chart-large" id="chartAnalisesDesp"></div></div>
 
   <div class="card wide"><h3>Top fornecedores — ano a decorrer</h3><div class="table-wrap"><table class="table"><thead><tr><th>Fornecedor</th><th class="money">Total YTD</th><th class="money">Peso</th><th>Leitura</th></tr></thead><tbody id="analisesTopFornecedores"><tr><td colspan="4" class="empty">A carregar fornecedores reais...</td></tr></tbody></table></div></div>
 
@@ -2005,6 +2004,7 @@ build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Inves
   const MESES_V49=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const SHORT_V49=MESES_V49.map(m=>m.slice(0,3));
   const EUR_V49=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+  let analisesExpenseFilter='Fornecedores';
 
   function normTxt(v){ return String(v ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
   function cell(r,names){ for(const n of names){ if(r && Object.prototype.hasOwnProperty.call(r,n)) return r[n]; } return null; }
@@ -2145,8 +2145,11 @@ build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Inves
       const d=await computeV49();
       const months=d.monthly.slice(0,d.month+1);
       renderBarsV49('chartAnalisesFat',months.map(x=>x.fat/1000),months.map(x=>x.short),'gold');
-      renderBarsV49('chartAnalisesDesp',months.map(x=>x.desp/1000),months.map(x=>x.short),'blue');
-      renderSignedV49('chartAnalisesMargem',months.map(x=>(x.margem||0)/10),months.map(x=>x.short));
+      const filterMap=d.despBuckets[analisesExpenseFilter]||{};
+      const expenseVals=months.map(x=>filterMap[key(x.ano,x.mi)]||0);
+      renderBarsV49('chartAnalisesDesp',expenseVals.map(v=>v/1000),months.map(x=>x.short),'blue');
+      setText('analisesDespTitle',`Evolução das despesas — ${analisesExpenseFilter}`);
+      document.querySelectorAll('[data-expense-filter]').forEach(btn=>btn.classList.toggle('active',btn.dataset.expenseFilter===analisesExpenseFilter));
       const metrics=document.querySelectorAll('#analises .card.metric');
       const best=months.reduce((a,b)=>b.fat>a.fat?b:a,months[0]||{mes:'—',fat:0});
       const totalFat=sum(months.map(x=>x.fat)), totalDesp=sum(months.map(x=>x.desp)); const margem=totalFat?(totalFat-totalDesp)/totalFat*100:null;
@@ -2175,6 +2178,10 @@ build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Inves
 
   window.loadResultadosReais=loadResultadosV49;
   window.loadAnalisesReais=loadAnalisesV49;
+  window.setAnalisesExpenseFilter=function(type){
+    analisesExpenseFilter=type;
+    loadAnalisesV49();
+  };
   function runV49(){ loadResultadosV49(); loadAnalisesV49(); }
   document.addEventListener('DOMContentLoaded',()=>setTimeout(runV49,900));
   setTimeout(runV49,2200);
