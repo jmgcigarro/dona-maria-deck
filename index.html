@@ -151,6 +151,11 @@ input[type=number]{
 .list-items{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:14px;background:white;margin-top:12px}
 .list-items .setting-row{border:0;border-bottom:1px solid var(--line);border-radius:0;background:white}
 .list-items .setting-row:last-child{border-bottom:0}
+.toast-host{position:fixed;right:22px;bottom:22px;z-index:10000;display:grid;gap:10px;width:min(360px,calc(100vw - 44px))}
+.toast{border:1px solid var(--line);border-left:5px solid var(--brand2);background:white;color:var(--ink);border-radius:14px;box-shadow:0 18px 48px rgba(6,33,65,.18);padding:13px 15px;font-size:14px;font-weight:800;line-height:1.35}
+.toast.good{border-left-color:var(--good)}
+.toast.bad{border-left-color:var(--bad)}
+.toast.warn{border-left-color:var(--warn)}
 @media(max-width:760px){.settings-grid .form,.password-form{grid-template-columns:1fr!important}.settings-grid .field label{white-space:normal;overflow:visible}}
 
 
@@ -505,6 +510,52 @@ body.auth-wait .app{display:none!important;}
 const SUPABASE_URL='https://hrlfwpwzciljwpgejmha.supabase.co';
 const SUPABASE_PUBLIC_KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
 const db=window.supabase ? window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLIC_KEY) : null;
+const RESTAURANT_TABLES=['faturacao_historica','faturacao_diaria','fornecedores_historico','ordenados','despesas_fixas','investimentos'];
+let restaurantDataCache=null;
+let restaurantDataPromise=null;
+
+function notify(message,type='info',timeout=3200){
+  let host=document.getElementById('toastHost');
+  if(!host){
+    host=document.createElement('div');
+    host.id='toastHost';
+    host.className='toast-host';
+    document.body.appendChild(host);
+  }
+  const toast=document.createElement('div');
+  toast.className='toast '+type;
+  toast.textContent=message;
+  host.appendChild(toast);
+  setTimeout(()=>{toast.style.opacity='0';toast.style.transform='translateY(6px)';},timeout);
+  setTimeout(()=>toast.remove(),timeout+260);
+}
+
+async function fetchTableRows(table){
+  if(!db) throw new Error('Supabase não carregou no browser.');
+  const {data,error}=await db.from(table).select('*');
+  if(error) throw error;
+  return data||[];
+}
+
+async function loadRestaurantData(force=false){
+  if(restaurantDataCache && !force) return restaurantDataCache;
+  if(restaurantDataPromise && !force) return restaurantDataPromise;
+  restaurantDataPromise=Promise.all(RESTAURANT_TABLES.map(fetchTableRows)).then(rows=>{
+    const data={loadedAt:new Date()};
+    RESTAURANT_TABLES.forEach((table,i)=>{data[table]=rows[i]||[];});
+    restaurantDataCache=data;
+    restaurantDataPromise=null;
+    return data;
+  }).catch(error=>{restaurantDataPromise=null;throw error;});
+  return restaurantDataPromise;
+}
+
+function invalidateRestaurantData(){
+  restaurantDataCache=null;
+  restaurantDataPromise=null;
+}
+window.loadRestaurantData=loadRestaurantData;
+window.invalidateRestaurantData=invalidateRestaurantData;
 
 function getAnoMesDiaFromDate(dateStr){
   const d=new Date(dateStr);
@@ -528,6 +579,7 @@ async function saveFaturacaoDiariaOnline(dateStr,valor){
   };
   const {data,error}=await db.from('faturacao_diaria').insert([payload]).select('*').single();
   if(error) throw error;
+  invalidateRestaurantData();
   return data||payload;
 }
 
@@ -537,6 +589,7 @@ async function insertOnline(table,payload){
   if(!db) throw new Error('Supabase não carregou no browser.');
   const {data,error}=await db.from(table).insert([payload]).select('*').single();
   if(error) throw error;
+  if(RESTAURANT_TABLES.includes(table)) invalidateRestaurantData();
   return data||payload;
 }
 
@@ -663,7 +716,7 @@ async function saveListItem(ev){
   if(window.currentUserProfile==='Visitante'){
     const msg='Perfil Visitante: apenas consulta. Entra como Administrador ou Gerente para alterar listas.';
     if(status) status.textContent=msg;
-    alert(msg);
+    notify(msg,'warn');
     return;
   }
   if(!db){
@@ -683,6 +736,7 @@ async function saveListItem(ev){
     if(insertError) throw insertError;
     if(input) input.value='';
     if(status) status.textContent=`"${value}" foi adicionado ao Supabase.`;
+    notify('Item adicionado à lista.','good');
     await loadListsFromSupabase();
   }catch(error){
     console.error(error);
@@ -691,7 +745,7 @@ async function saveListItem(ev){
       ? `O Supabase está a bloquear alterações em "${cfg.table}" por RLS. É preciso criar uma policy de INSERT para utilizadores autenticados.`
       : raw;
     if(status) status.textContent=msg;
-    alert(msg);
+    notify(msg,'bad',5200);
   }
 }
 
@@ -780,7 +834,7 @@ function bindCurrencyInputs(){
 }
 
 const inputPages=[['entrada-faturacao','Faturação Diária Restaurante','Registar vendas diárias do restaurante.'],['entrada-fornecedores','Despesas com Fornecedores','Lançar faturas e pagamentos de fornecedores.'],['entrada-pessoal','Ordenados','Registar ordenados e encargos com pessoal.'],['entrada-fixas','Despesas Fixas','Controlar rendas, energia, água, gás e serviços.'],['entrada-investimentos','Investimentos','Registar obras, equipamentos e melhorias.']];
-const reportPages=[['resumo','Resumo / Alertas','Indicadores do mês a decorrer e evolução anual.'],['fat-mes','Faturação - Atual','Consultar dia a dia do mês a decorrer.'],['fat-anteriores','Faturação - Histórico','Consultar meses já fechados no ano atual.'],['fornecedores','Fornecedores','Comparar fornecedores e consultar detalhe individual.'],['despesas-fixas-consulta','Despesas Fixas','Consultar evolução e detalhe das despesas fixas.'],['resultados','Resultados','Lucro mensal, despesas, margens e comparativo com anos anteriores.'],['analises','Análises','Tendências, desvios, alertas e leitura evolutiva.'],['assistente','Assistente IA','Perguntas em linguagem natural sobre a gestão do restaurante.'],['configuracoes','Configurações','Estilo da app, importação, listas, utilizadores e segurança.']];
+const reportPages=[['resumo','Resumo / Alertas','Indicadores do mês a decorrer e evolução anual.'],['fat-mes','Faturação - Atual','Consultar dia a dia do mês a decorrer.'],['fat-anteriores','Faturação - Histórico','Consultar meses já fechados no ano atual.'],['fornecedores','Fornecedores','Comparar fornecedores e consultar detalhe individual.'],['despesas-fixas-consulta','Despesas Fixas','Consultar evolução e detalhe das despesas fixas.'],['resultados','Resultados','Lucro mensal, despesas, margens e comparativo com anos anteriores.'],['analises','Análises','Tendências, desvios, alertas e leitura evolutiva.'],['assistente','Assistente IA','Perguntas em linguagem natural sobre a gestão do restaurante.'],['configuracoes','Configurações','Listas, utilizadores, segurança e backup.']];
 const pages=[['inicio','Início','Capa da ferramenta de gestão Dona Maria Deck.'],...reportPages,...inputPages];
 let records=JSON.parse(localStorage.getItem('dm_records_v4')||'[]');
 const daily=[1240,1390,1810,2310,2980,2520,980,1430,1680,1720,2290,3420,2870,1100,1450,1820,1930,1460,1920,2480,2140];
@@ -802,6 +856,7 @@ function runIfExists(name){
   return null;
 }
 async function refreshAppData(){
+  invalidateRestaurantData();
   renderRecords();
   updateBackupTimestamp();
   const tasks=[
@@ -895,14 +950,15 @@ async function launchRecord(ev){
     ok.textContent='Registo gravado no Supabase com sucesso.';
     ok.style.display='inline-block';
     setTimeout(()=>ok.style.display='none',2600);
+    notify('Registo gravado e dados atualizados.','good');
     await refreshAppData();
   }catch(error){
     console.error(error);
     const msg=error.message||String(error);
     if(msg.includes('já foi registad') || msg.includes('já existe')){
-      alert(msg);
+      notify(msg,'warn',5200);
     }else{
-      alert('Erro ao gravar no Supabase: '+msg);
+      notify('Erro ao gravar no Supabase: '+msg,'bad',6200);
     }
   }
 }
@@ -944,6 +1000,7 @@ async function deleteOnlineRecord(record){
   const {data,error}=await query.select('*');
   if(error) throw error;
   if(!data || data.length===0) throw new Error(`O Supabase não apagou nenhuma linha em "${spec.table}". Verifica se este registo ainda existe ou se a policy DELETE está ativa.`);
+  invalidateRestaurantData();
 }
 
 async function deleteRecord(id){
@@ -954,11 +1011,12 @@ async function deleteRecord(id){
     await deleteOnlineRecord(record);
     records=records.filter(r=>r.id!==id);
     localStorage.setItem('dm_records_v4',JSON.stringify(records));
+    notify('Registo apagado da base de dados.','good');
     await refreshAppData();
   }catch(error){
     console.error(error);
     const msg=error.message||String(error);
-    alert(msg.includes('row-level security') ? 'O Supabase bloqueou o apagamento por RLS. É preciso criar policies de DELETE para estas tabelas.' : 'Erro ao apagar no Supabase: '+msg);
+    notify(msg.includes('row-level security') ? 'O Supabase bloqueou o apagamento por RLS. É preciso criar policies de DELETE para estas tabelas.' : 'Erro ao apagar no Supabase: '+msg,'bad',6500);
   }
 }
 function renderRecords(){const rows=records.map(r=>`<tr><td><span class="tag">${r.type}</span></td><td>${r.date||'—'}</td><td>${r.cat}${r.desc&&r.desc!==r.cat?' · '+r.desc:''}</td><td class="money"><b>${fmt.format(r.value)}</b></td><td><button class="delete" onclick="deleteRecord(${r.id})">Apagar</button></td></tr>`).join('');allRecords.innerHTML=rows||'<tr><td colspan="5" class="empty">Ainda não existem registos lançados nesta versão do protótipo.</td></tr>';}
@@ -1143,6 +1201,14 @@ function pctText(value){ return Number.isFinite(value)?`${value.toFixed(1).repla
 function getTableValue(row,names){ for(const n of names){ if(row && row[n]!==undefined && row[n]!==null) return row[n]; } return null; }
 async function fetchAll(table){
   if(!db) return [];
+  if(RESTAURANT_TABLES.includes(table)){
+    try{
+      const data=await loadRestaurantData();
+      return data[table]||[];
+    }catch(error){
+      console.warn('Erro ao carregar cache '+table,error);
+    }
+  }
   const {data,error}=await db.from(table).select('*');
   if(error){ console.warn('Erro ao carregar '+table,error); return []; }
   return data||[];
@@ -2069,7 +2135,10 @@ build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Inves
     });
   }
   async function computeV49(){
-    const [fatHist,fatDia,forn,ord,fix,inv]=await Promise.all([
+    const source=window.loadRestaurantData ? await window.loadRestaurantData() : null;
+    const [fatHist,fatDia,forn,ord,fix,inv]=source ? [
+      source.faturacao_historica,source.faturacao_diaria,source.fornecedores_historico,source.ordenados,source.despesas_fixas,source.investimentos
+    ] : await Promise.all([
       all('faturacao_historica'),all('faturacao_diaria'),all('fornecedores_historico'),all('ordenados'),all('despesas_fixas'),all('investimentos')
     ]);
     const today=new Date();
@@ -2262,7 +2331,7 @@ build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Inves
   window.launchRecord=async function(ev){
     if(window.currentUserProfile==='Visitante'){
       if(ev){ev.preventDefault();ev.stopPropagation();}
-      alert('Perfil Visitante: apenas consulta.');
+      notify('Perfil Visitante: apenas consulta.','warn');
       return false;
     }
     return originalLaunch ? originalLaunch(ev) : false;
@@ -2723,7 +2792,10 @@ build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Inves
   }
   async function computeAI(force=false){
     if(aiCache && !force)return aiCache;
-    const [fatHist,fatDia,forn,ord,fix,inv]=await Promise.all([
+    const source=window.loadRestaurantData ? await window.loadRestaurantData(force) : null;
+    const [fatHist,fatDia,forn,ord,fix,inv]=source ? [
+      source.faturacao_historica,source.faturacao_diaria,source.fornecedores_historico,source.ordenados,source.despesas_fixas,source.investimentos
+    ] : await Promise.all([
       table('faturacao_historica'), table('faturacao_diaria'), table('fornecedores_historico'), table('ordenados'), table('despesas_fixas'), table('investimentos')
     ]);
     const now=new Date();
