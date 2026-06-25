@@ -143,6 +143,14 @@ input[type=number]{
 .password-form .field.full{grid-column:1/-1}
 .password-form .field input{width:100%}
 .password-form .screen-note{grid-column:1/-1}
+.list-manager{margin-top:16px;border:1px solid var(--line);border-radius:16px;background:#f7fbfc;padding:14px;display:none}
+.list-manager.active{display:block}
+.list-manager .form{grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}
+.list-manager-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.list-manager-title h4{margin:0;font-size:16px}
+.list-items{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:14px;background:white;margin-top:12px}
+.list-items .setting-row{border:0;border-bottom:1px solid var(--line);border-radius:0;background:white}
+.list-items .setting-row:last-child{border-bottom:0}
 @media(max-width:760px){.settings-grid .form,.password-form{grid-template-columns:1fr!important}.settings-grid .field label{white-space:normal;overflow:visible}}
 
 
@@ -490,7 +498,7 @@ body.auth-wait .app{display:none!important;}
 </div></section>
 
 <section id="assistente" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Assistente IA</h2><p>Faça perguntas sobre faturação, despesas, fornecedores, resultados e tendências do Dona Maria Deck.</p></div><span class="tag good">Demonstração</span></div></div><div class="chat-shell full"><div class="card"><h3>Sugestões rápidas</h3><div class="prompt-list"><button class="prompt-btn" onclick="askAI('Qual foi o melhor mês deste ano?')">Qual foi o melhor mês deste ano?</button><button class="prompt-btn" onclick="askAI('Quanto gastámos por fornecedor?')">Quanto gastámos por fornecedor?</button><button class="prompt-btn" onclick="askAI('Compara este mês com o mesmo mês do ano passado.')">Compara este mês com o mesmo mês do ano passado.</button><button class="prompt-btn" onclick="askAI('Qual foi a margem líquida acumulada?')">Qual foi a margem líquida acumulada?</button><button class="prompt-btn" onclick="askAI('Que despesas estão acima da média?')">Que despesas estão acima da média?</button></div><div class="screen-note">Na app final, este assistente vai ligar à base de dados e responder apenas com dados reais importados ou lançados.</div></div><div class="card chat-card"><div class="chat-window" id="chatWindow"><div class="msg ai"><b>Assistente Dona Maria Deck</b><br>Estou pronto para analisar os dados do restaurante. Nesta versão, as respostas são demonstrativas; na app final serão calculadas pela base de dados.</div><div class="msg ai">Exemplo: a faturação acumulada de 2026 está acima de 2025 e os fornecedores devem ser acompanhados por tendência de subida.</div></div><div class="chat-input"><input id="aiInput" placeholder="Faça uma pergunta sobre o restaurante..."><button class="btn primary" onclick="askAI()">Analisar</button></div></div></div></div></section>
-<section id="configuracoes" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Configurações</h2><p>Área de preparação da aplicação final: estilo da app, importação, listas, utilizadores, segurança e IA.</p></div><span class="tag">Administração</span></div></div><div class="settings-grid full"><div class="card"><h3>Estilo da aplicação</h3><div class="form"><div class="field"><label>Modo visual</label><select><option>Automático</option><option>Claro</option><option>Escuro</option></select></div><div class="field"><label>Paleta principal</label><select><option>Azul, cinza e verde</option><option>Azul executivo</option><option>Verde restaurante</option><option>Cinza minimalista</option></select></div><div class="field"><label>Densidade da interface</label><select><option>Confortável</option><option>Compacta</option></select></div><div class="field"><label>Formato dos valores</label><select><option>1 388,89 €</option><option>€ 1 388,89</option></select></div></div><div class="theme-preview"><span class="swatch navy"></span><span class="swatch green"></span><span class="swatch grey"></span><b>Pré-visualização do tema atual</b></div><div class="settings-actions"><button class="btn primary">Guardar estilo</button></div></div><div class="card"><h3>Histórico e importação</h3><div class="importbox" style="padding:18px"><p><b>Importar Excel histórico</b></p><p>Faturação, fornecedores, ordenados, despesas fixas, investimentos e listas de apoio.</p><input type="file" accept=".xls,.xlsx,.xlsb,.csv"><br><br><button class="btn primary">Pré-visualizar importação</button></div></div><div class="card"><h3>Listas</h3><div class="setting-list"><div class="setting-row"><span>Fornecedores ativos</span><b id="cfgCountFornecedores">—</b></div><div class="setting-row"><span>Funcionários</span><b id="cfgCountFuncionarios">—</b></div><div class="setting-row"><span>Despesas fixas</span><b id="cfgCountDespesasFixas">—</b></div><div class="setting-row"><span>Categorias de investimento</span><b>6</b></div></div><div class="screen-note" id="cfgListStatus">As listas são carregadas automaticamente do Supabase.</div><div class="settings-actions"><button class="btn" onclick="loadListsFromSupabase()">Atualizar listas</button><button class="btn">Gerir fornecedores</button><button class="btn">Gerir funcionários</button><button class="btn">Gerir despesas fixas</button></div></div><div class="card"><h3>Utilizadores</h3><div class="role-grid"><div class="role-card"><h4>Administrador</h4><p>Controlo total, importação, apagar e exportar.</p></div><div class="role-card"><h4>Gerente</h4><p>Introduzir, consultar e analisar dados.</p></div><div class="role-card"><h4>Consulta</h4><p>Acesso apenas a dashboards e relatórios.</p></div></div></div><div class="card"><h3>Segurança e backup</h3><div class="setting-list"><div class="setting-row"><span><span class="status-dot"></span>Base de dados online</span><b>Preparado</b></div><div class="setting-row"><span><span class="status-dot warn"></span>Último backup</span><b>Por configurar</b></div><div class="setting-row"><span>Exportação geral</span><b>Excel / CSV</b></div></div><div class="settings-actions"><button class="btn primary">Exportar dados</button><button class="btn">Ver backups</button></div></div><div class="card"><h3>Assistente IA</h3><div class="form"><div class="field"><label>Modo de resposta</label><select><option>Executivo</option><option>Financeiro</option><option>Completo</option></select></div><div class="field"><label>Histórico de conversas</label><select><option>Guardar</option><option>Não guardar</option></select></div><div class="field full"><label>Objetivo</label><input value="Responder com base nos dados reais da base de dados do Dona Maria Deck."></div></div><div class="settings-actions"><button class="btn primary">Guardar IA</button></div></div></div></div></section>
+<section id="configuracoes" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Configurações</h2><p>Área de preparação da aplicação final: estilo da app, importação, listas, utilizadores, segurança e IA.</p></div><span class="tag">Administração</span></div></div><div class="settings-grid full"><div class="card"><h3>Estilo da aplicação</h3><div class="form"><div class="field"><label>Modo visual</label><select><option>Automático</option><option>Claro</option><option>Escuro</option></select></div><div class="field"><label>Paleta principal</label><select><option>Azul, cinza e verde</option><option>Azul executivo</option><option>Verde restaurante</option><option>Cinza minimalista</option></select></div><div class="field"><label>Densidade da interface</label><select><option>Confortável</option><option>Compacta</option></select></div><div class="field"><label>Formato dos valores</label><select><option>1 388,89 €</option><option>€ 1 388,89</option></select></div></div><div class="theme-preview"><span class="swatch navy"></span><span class="swatch green"></span><span class="swatch grey"></span><b>Pré-visualização do tema atual</b></div><div class="settings-actions"><button class="btn primary">Guardar estilo</button></div></div><div class="card"><h3>Histórico e importação</h3><div class="importbox" style="padding:18px"><p><b>Importar Excel histórico</b></p><p>Faturação, fornecedores, ordenados, despesas fixas, investimentos e listas de apoio.</p><input type="file" accept=".xls,.xlsx,.xlsb,.csv"><br><br><button class="btn primary">Pré-visualizar importação</button></div></div><div class="card"><h3>Listas</h3><div class="setting-list"><div class="setting-row"><span>Fornecedores ativos</span><b id="cfgCountFornecedores">—</b></div><div class="setting-row"><span>Funcionários</span><b id="cfgCountFuncionarios">—</b></div><div class="setting-row"><span>Despesas fixas</span><b id="cfgCountDespesasFixas">—</b></div><div class="setting-row"><span>Categorias de investimento</span><b>6</b></div></div><div class="screen-note" id="cfgListStatus">As listas são carregadas automaticamente do Supabase.</div><div class="settings-actions"><button class="btn" onclick="loadListsFromSupabase()">Atualizar listas</button><button class="btn" onclick="openListManager('fornecedores')">Gerir fornecedores</button><button class="btn" onclick="openListManager('funcionarios')">Gerir funcionários</button><button class="btn" onclick="openListManager('despesas')">Gerir despesas fixas</button></div><div class="list-manager" id="cfgListManager"><div class="list-manager-title"><h4 id="cfgListManagerTitle">Gerir lista</h4><span class="tag" id="cfgListManagerTable">Supabase</span></div><form class="form" onsubmit="saveListItem(event)"><div class="field"><label id="cfgListInputLabel">Nome</label><input id="cfgListInput" required autocomplete="off" placeholder="Novo item da lista"></div><button class="btn primary" type="submit">Adicionar</button></form><div class="screen-note" id="cfgListManagerStatus">Escolhe uma lista para gerir.</div><div class="list-items" id="cfgListItems"></div></div></div><div class="card"><h3>Utilizadores</h3><div class="role-grid"><div class="role-card"><h4>Administrador</h4><p>Controlo total, importação, apagar e exportar.</p></div><div class="role-card"><h4>Gerente</h4><p>Introduzir, consultar e analisar dados.</p></div><div class="role-card"><h4>Consulta</h4><p>Acesso apenas a dashboards e relatórios.</p></div></div></div><div class="card"><h3>Segurança e backup</h3><div class="setting-list"><div class="setting-row"><span><span class="status-dot"></span>Base de dados online</span><b>Preparado</b></div><div class="setting-row"><span><span class="status-dot warn"></span>Último backup</span><b>Por configurar</b></div><div class="setting-row"><span>Exportação geral</span><b>Excel / CSV</b></div></div><div class="settings-actions"><button class="btn primary">Exportar dados</button><button class="btn">Ver backups</button></div></div><div class="card"><h3>Assistente IA</h3><div class="form"><div class="field"><label>Modo de resposta</label><select><option>Executivo</option><option>Financeiro</option><option>Completo</option></select></div><div class="field"><label>Histórico de conversas</label><select><option>Guardar</option><option>Não guardar</option></select></div><div class="field full"><label>Objetivo</label><input value="Responder com base nos dados reais da base de dados do Dona Maria Deck."></div></div><div class="settings-actions"><button class="btn primary">Guardar IA</button></div></div></div></div></section>
 
 <section id="importar" class="section"><div class="card importbox"><h3>Importação do histórico Excel</h3><p>Aqui a app vai converter o Excel antigo em tabelas limpas: faturação diária, fornecedores, pessoal, fixas, investimentos e categorias.</p><input type="file" accept=".xls,.xlsx,.xlsb,.csv"><br><br><button class="btn primary">Simular validação</button></div></section>
 </main><aside class="side"><div class="brand"><img class="logo brand-logo" src="icons/icon-512.png" alt="Dona Maria Deck"><div><h1>Dona Maria Deck</h1><p>Gestão Inteligente</p></div></div><nav class="nav side-home"><button data-page="inicio" onclick="show('inicio')">Início</button></nav><div class="nav-title">Introduzir</div><nav class="nav" id="navInputs"></nav><div class="nav-title">Consultar</div><nav class="nav" id="navReports"></nav><div style="margin-top:14px;font-size:10px;color:rgba(255,255,255,.45);text-align:center;letter-spacing:.08em;">V61.2</div></aside></div><div class="phonebar" id="phonebar"></div>
@@ -589,6 +597,93 @@ function isAggregateFixedType(value){
   return ['total','totais','subtotal','sub total'].includes(s);
 }
 
+const listManagerConfig={
+  fornecedores:{title:'Gerir fornecedores',label:'Novo fornecedor',table:'lista_fornecedores',column:'Fornecedor',placeholder:'Ex.: Aviludo'},
+  funcionarios:{title:'Gerir funcionários',label:'Novo funcionário',table:'lista_funcionarios',column:'Funcionário',placeholder:'Ex.: Maria Silva'},
+  despesas:{title:'Gerir despesas fixas',label:'Nova despesa fixa',table:'lista_despesas_fixas',column:'Tipo',placeholder:'Ex.: Telecomunicações',filterFn:v=>!isAggregateFixedType(v)}
+};
+let activeListManager='fornecedores';
+
+function escapeHTML(value){
+  return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+}
+
+async function loadListManagerItems(){
+  const cfg=listManagerConfig[activeListManager];
+  const itemsEl=document.getElementById('cfgListItems');
+  const status=document.getElementById('cfgListManagerStatus');
+  if(!cfg||!itemsEl) return;
+  if(!db){
+    if(status) status.textContent='Supabase não carregou no browser.';
+    return;
+  }
+  itemsEl.innerHTML='<div class="setting-row"><span>A carregar...</span><b>—</b></div>';
+  const {data,error}=await db.from(cfg.table).select(`"${cfg.column}"`).order(cfg.column,{ascending:true});
+  if(error){
+    console.warn('Erro ao carregar gestor de lista',cfg.table,error);
+    itemsEl.innerHTML='<div class="setting-row"><span>Erro ao carregar a lista.</span><b>—</b></div>';
+    if(status) status.textContent='Não foi possível carregar esta lista. Verifica permissões/RLS no Supabase.';
+    return;
+  }
+  let values=[...new Set((data||[]).map(row=>row[cfg.column]).filter(Boolean))];
+  if(cfg.filterFn) values=values.filter(cfg.filterFn);
+  itemsEl.innerHTML=values.map(value=>`<div class="setting-row"><span>${escapeHTML(value)}</span><b>Ativo</b></div>`).join('') || '<div class="setting-row"><span>Sem itens nesta lista.</span><b>—</b></div>';
+  if(status) status.textContent=`${values.length} ${values.length===1?'item carregado':'itens carregados'} nesta lista.`;
+}
+
+async function openListManager(type){
+  const cfg=listManagerConfig[type];
+  if(!cfg) return;
+  activeListManager=type;
+  const box=document.getElementById('cfgListManager');
+  const title=document.getElementById('cfgListManagerTitle');
+  const table=document.getElementById('cfgListManagerTable');
+  const label=document.getElementById('cfgListInputLabel');
+  const input=document.getElementById('cfgListInput');
+  if(box) box.classList.add('active');
+  if(title) title.textContent=cfg.title;
+  if(table) table.textContent=cfg.table;
+  if(label) label.textContent=cfg.label;
+  if(input){
+    input.value='';
+    input.placeholder=cfg.placeholder;
+    setTimeout(()=>input.focus(),0);
+  }
+  await loadListManagerItems();
+}
+
+async function saveListItem(ev){
+  ev.preventDefault();
+  const cfg=listManagerConfig[activeListManager];
+  const input=document.getElementById('cfgListInput');
+  const status=document.getElementById('cfgListManagerStatus');
+  const value=String(input?.value||'').trim();
+  if(!cfg||!value) return;
+  if(!db){
+    if(status) status.textContent='Supabase não carregou no browser.';
+    return;
+  }
+  try{
+    if(status) status.textContent='A verificar a lista...';
+    const {data,error}=await db.from(cfg.table).select(`"${cfg.column}"`);
+    if(error) throw error;
+    const exists=(data||[]).some(row=>normalizeKey(row[cfg.column])===normalizeKey(value));
+    if(exists) throw new Error(`"${value}" já existe nesta lista.`);
+    if(cfg.filterFn && !cfg.filterFn(value)) throw new Error('Este nome está reservado e não pode ser usado nesta lista.');
+    const payload={};
+    payload[cfg.column]=value;
+    const {error:insertError}=await db.from(cfg.table).insert([payload]);
+    if(insertError) throw insertError;
+    if(input) input.value='';
+    if(status) status.textContent=`"${value}" foi adicionado ao Supabase.`;
+    await loadListsFromSupabase();
+  }catch(error){
+    console.error(error);
+    if(status) status.textContent=error.message||String(error);
+    alert(error.message||String(error));
+  }
+}
+
 async function loadSelectFromTable(table,column,selector,includeAll=false,allLabel='Todos os fornecedores',filterFn=null){
   if(!db) return {count:0,error:new Error('Supabase não carregou no browser.')};
   const {data,error}=await db.from(table).select(`"${column}"`).order(column,{ascending:true});
@@ -625,8 +720,12 @@ async function loadListsFromSupabase(){
       status.textContent='Não foi possível carregar uma ou mais listas. Verifica permissões/RLS no Supabase.';
       status.classList.add('warn');
     }else{
+      status.classList.remove('warn');
       status.textContent='Listas carregadas do Supabase. Qualquer alteração feita nas tabelas de listas aparece aqui após atualizar.';
     }
+  }
+  if(document.getElementById('cfgListManager')?.classList.contains('active')){
+    await loadListManagerItems();
   }
   changeSupplier();
 }
