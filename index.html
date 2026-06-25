@@ -389,7 +389,7 @@ body.auth-wait .app{display:none!important;}
   <div class="login-card">
     <div class="login-brand"><img class="logo brand-logo" src="icons/icon-512.png" alt="Dona Maria Deck"><div><h1>Dona Maria Deck</h1><p>Acesso reservado</p></div></div>
     <form id="loginForm">
-      <div class="field"><label>E-mail</label><input id="loginEmail" type="email" autocomplete="email" required placeholder="exemplo@email.com"></div>
+      <div class="field"><label>Username</label><input id="loginEmail" type="text" autocomplete="username" required placeholder="ex.: jmcigarro"></div>
       <div class="field"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Password"></div>
       <button class="btn primary" type="submit" id="loginButton">Entrar</button>
       <div class="login-error" id="loginError">Não foi possível iniciar sessão.</div>
@@ -2350,6 +2350,11 @@ build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Inves
   }
   function clearLoginError(){const el=document.getElementById('loginError'); if(el)el.style.display='none';}
   function normalizeEmail(email){return String(email||'').trim().toLowerCase();}
+  function loginIdentifierToEmail(value){
+    const clean=normalizeEmail(value);
+    if(clean.includes('@')) return clean;
+    return clean ? `${clean}@hotmail.com` : '';
+  }
   async function getProfileForEmail(email){
     const clean=normalizeEmail(email);
     if(db){
@@ -2417,7 +2422,7 @@ build();updateBackupTimestamp();document.querySelectorAll('form[data-type="Inves
       form.addEventListener('submit',async function(ev){
         ev.preventDefault(); clearLoginError();
         const btn=document.getElementById('loginButton');
-        const email=document.getElementById('loginEmail')?.value||'';
+        const email=loginIdentifierToEmail(document.getElementById('loginEmail')?.value||'');
         const password=document.getElementById('loginPassword')?.value||'';
         if(btn){btn.disabled=true;btn.textContent='A entrar...';}
         try{
