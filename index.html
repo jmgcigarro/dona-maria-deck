@@ -509,7 +509,7 @@ body.auth-wait .app{display:none!important;}
 <script>
 const SUPABASE_URL='https://hrlfwpwzciljwpgejmha.supabase.co';
 const SUPABASE_PUBLIC_KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
-const APP_VERSION='2026.06.25-19:32';
+const APP_VERSION='2026.06.25-19:55';
 const db=window.supabase ? window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLIC_KEY) : null;
 const RESTAURANT_TABLES=['faturacao_historica','faturacao_diaria','fornecedores_historico','ordenados','despesas_fixas','investimentos'];
 let restaurantDataCache=null;
@@ -849,7 +849,8 @@ function formatDateTimePT(date){
 function updateBackupTimestamp(){
   const el=document.getElementById('cfgLastBackup');
   if(!el) return;
-  el.textContent=APP_VERSION;
+  const parsed=new Date(document.lastModified);
+  el.textContent=!isNaN(parsed)?formatDateTimePT(parsed):APP_VERSION;
 }
 
 function downloadTextFile(filename,content,type='text/csv;charset=utf-8'){
