@@ -1179,11 +1179,12 @@ function makeSignedBars(id,vals,labels){
   el.classList.remove('chart');el.classList.add('signed-chart');
   el.innerHTML='';
   const maxAbs=Math.max(1,...vals.map(v=>Math.abs(Number(v)||0)));
+  const h=chartBarHeights(el,88,8);
   vals.forEach((v,i)=>{
     const n=Number(v)||0;
     const wrap=document.createElement('div');wrap.className='signed-wrap';
     const bar=document.createElement('div');bar.className='signed-bar '+(n<0?'negative':'positive');
-    bar.style.height=(Math.max(8,Math.abs(n)/maxAbs*88))+'px';
+    bar.style.height=(Math.max(h.min,Math.abs(n)/maxAbs*h.max))+'px';
     bar.title=(labels[i]||'')+' · '+fmt.format(n*1000);
     const sp=document.createElement('span');sp.textContent=labels[i]||'';
     wrap.appendChild(bar);wrap.appendChild(sp);el.appendChild(wrap);
@@ -2281,11 +2282,12 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     el.classList.remove('chart'); el.classList.add('signed-chart');
     el.innerHTML='';
     const maxAbs=Math.max(1,...vals.map(v=>Math.abs(Number(v)||0)));
+    const h=chartBarHeights(el,88,8);
     vals.forEach((v,i)=>{
       const n=Number(v)||0;
       const wrap=document.createElement('div'); wrap.className='signed-wrap';
       const bar=document.createElement('div'); bar.className='signed-bar '+(n<0?'negative':'positive');
-      bar.style.height=(Math.max(8,Math.abs(n)/maxAbs*88))+'px';
+      bar.style.height=(Math.max(h.min,Math.abs(n)/maxAbs*h.max))+'px';
       bar.title=`${labels[i]||''} · ${EUR_V49.format(n*1000)}`;
       const sp=document.createElement('span'); sp.textContent=labels[i]||'';
       wrap.appendChild(bar); wrap.appendChild(sp); el.appendChild(wrap);
@@ -2776,11 +2778,12 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     el.classList.add('chart');
     el.innerHTML='';
     const max=Math.max(1,...values.map(v=>Number(v)||0));
+    const h=chartBarHeights(el,165,34);
     MESES.forEach((m,i)=>{
       const v=Number(values[i]||0);
       const b=document.createElement('div');
       b.className='bar';
-      b.style.height=(34+(v/max)*165)+'px';
+      b.style.height=(h.min+(v/max)*h.max)+'px';
       b.title=`${m} · ${money(v)}`;
       b.innerHTML=`<span>${m.slice(0,3)}</span>`;
       el.appendChild(b);
