@@ -510,6 +510,7 @@ function getAnoMesDiaFromDate(dateStr){
 
 async function saveFaturacaoDiariaOnline(dateStr,valor){
   if(!db) throw new Error('Supabase não carregou no browser.');
+  await assertNoFaturacaoDiariaDuplicate(dateStr);
   const d=getAnoMesDiaFromDate(dateStr);
   const payload={
     "Data":dateStr,
@@ -530,8 +531,46 @@ async function insertOnline(table,payload){
   if(error) throw error;
 }
 
+function normalizeKey(value){
+  return String(value||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+function rowDateISO(row){
+  let dataStr=getTableValue(row,['Data','data']);
+  if(dataStr) return String(dataStr).slice(0,10);
+  const ano=Number(getTableValue(row,['Ano','ano']));
+  const mesIndex=monthIndexFromName(getTableValue(row,['Mês','mes']));
+  const dia=Number(getTableValue(row,['Dia','dia']));
+  if(ano && mesIndex>=0 && dia) return `${ano}-${String(mesIndex+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+  return '';
+}
+
+async function assertNoFaturacaoDiariaDuplicate(dateStr){
+  const target=String(dateStr||'').slice(0,10);
+  if(!target) return;
+  const {data,error}=await db.from('faturacao_diaria').select('*');
+  if(error) throw new Error('Não foi possível verificar se esta data já existe na faturação diária.');
+  const exists=(data||[]).some(row=>rowDateISO(row)===target);
+  if(exists) throw new Error(`A faturação do dia ${formatDatePT(target)} já foi registada.`);
+}
+
+async function assertNoDespesaFixaDuplicate(ano,mes,tipo){
+  const targetMes=normalizeKey(mes);
+  const targetTipo=normalizeKey(tipo);
+  if(!ano || !targetMes || !targetTipo) return;
+  const {data,error}=await db.from('despesas_fixas').select('*');
+  if(error) throw new Error('Não foi possível verificar se esta despesa fixa já existe.');
+  const exists=(data||[]).some(row=>{
+    const rowAno=Number(getTableValue(row,['Ano','ano']));
+    const rowMes=normalizeKey(getTableValue(row,['Mês','mes']));
+    const rowTipo=normalizeKey(getTableValue(row,['Tipo','tipo']));
+    return rowAno===Number(ano) && rowMes===targetMes && rowTipo===targetTipo;
+  });
+  if(exists) throw new Error(`A despesa fixa "${tipo}" de ${mes} ${ano} já foi registada.`);
+}
+
 function isAggregateFixedType(value){
-  const s=String(value||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const s=normalizeKey(value);
   return ['total','totais','subtotal','sub total'].includes(s);
 }
 
@@ -661,13 +700,15 @@ async function launchRecord(ev){
       records.unshift({id:Date.now(),type:'Ordenados',date:fd.get('mes'),cat,desc:'Gravado no Supabase',value:val});
 
     }else if(f.dataset.type==='Fixa'){
+      const mes=fd.get('mes');
+      await assertNoDespesaFixaDuplicate(currentYear(),mes,cat);
       await insertOnline('despesas_fixas',{
         "Ano":currentYear(),
-        "Mês":fd.get('mes'),
+        "Mês":mes,
         "Tipo":cat,
         "Valor":val
       });
-      records.unshift({id:Date.now(),type:'Despesa fixa',date:fd.get('mes'),cat,desc:'Gravado no Supabase',value:val});
+      records.unshift({id:Date.now(),type:'Despesa fixa',date:mes,cat,desc:'Gravado no Supabase',value:val});
 
     }else if(f.dataset.type==='Investimento'){
       const months=Number(fd.get('amortizacao')||1);
@@ -696,7 +737,12 @@ async function launchRecord(ev){
     loadV39();
   }catch(error){
     console.error(error);
-    alert('Erro ao gravar no Supabase: '+(error.message||error));
+    const msg=error.message||String(error);
+    if(msg.includes('já foi registad') || msg.includes('já existe')){
+      alert(msg);
+    }else{
+      alert('Erro ao gravar no Supabase: '+msg);
+    }
   }
 }
 function deleteRecord(id){if(!confirm('Apagar este registo?'))return;records=records.filter(r=>r.id!==id);localStorage.setItem('dm_records_v4',JSON.stringify(records));renderRecords();}
