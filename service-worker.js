@@ -1,4 +1,4 @@
-const CACHE_NAME = "dona-maria-deck-v8";
+const CACHE_NAME = "dona-maria-deck-v9";
 
 const FILES_TO_CACHE = [
   "./",

@@ -558,7 +558,7 @@ body.auth-wait .app{display:none!important;}
 <script>
 const SUPABASE_URL='https://hrlfwpwzciljwpgejmha.supabase.co';
 const SUPABASE_PUBLIC_KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
-const APP_VERSION='2026.06.27-10:45';
+const APP_VERSION='2026.06.27-11:00';
 const db=window.supabase ? window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLIC_KEY) : null;
 const RESTAURANT_TABLES=['faturacao_historica','faturacao_diaria','fornecedores_historico','ordenados','despesas_fixas','investimentos'];
 let restaurantDataCache=null;
@@ -1940,6 +1940,31 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     const m=y===now.getFullYear()?now.getMonth():11;
     return {year:y,prev:y-1,monthLimit:m,monthName:MESES[m]};
   }
+  function fixedMissingAlert(rows,tipo,ctx){
+    const entries=(rows||[])
+      .map(r=>({
+        year:Number(val(r,['Ano','ano'])),
+        month:mi(val(r,['Mês','mes'])),
+        type:String(val(r,['Tipo','tipo'])||'').trim()
+      }))
+      .filter(r=>r.type===tipo && r.month>=0 && r.year);
+    const currentYearMonths=entries
+      .filter(r=>r.year===ctx.year && r.month<=ctx.monthLimit)
+      .map(r=>r.month);
+    const lastCurrentMonth=currentYearMonths.length ? Math.max(...currentYearMonths) : null;
+    if(lastCurrentMonth!==null){
+      if(lastCurrentMonth>=ctx.monthLimit){
+        return `<div class="alert good"><b>Registo em dia</b><br>${tipo} tem registo até ${ctx.monthName}.</div>`;
+      }
+      const missingMonths=ctx.monthLimit-lastCurrentMonth;
+      return `<div class="alert ${missingMonths>1?'bad':'warn'}"><b>Registos em falta</b><br>${tipo} não tem registos desde ${MESES[lastCurrentMonth]}.</div>`;
+    }
+    const last=entries.sort((a,b)=>(b.year-a.year)||(b.month-a.month))[0];
+    if(last){
+      return `<div class="alert bad"><b>Registos em falta</b><br>${tipo} não tem registos em ${ctx.year}. Último registo: ${MESES[last.month]} ${last.year}.</div>`;
+    }
+    return `<div class="alert bad"><b>Registos em falta</b><br>${tipo} ainda não tem registos lançados.</div>`;
+  }
   let SUPPLIERS=[];
   async function loadSuppliersV47(){
     const {rows,error}=await fetchRows('fornecedores_historico');
@@ -2055,7 +2080,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     const insights=document.getElementById('fixasInsights');
     if(insights){
       if(chosen==='__all') insights.innerHTML=`<div class="alert good">Total de despesas fixas em ${ctx.year} até ${ctx.monthName}: <b>${EUR.format(total)}</b>.</div><div class="alert">Maior despesa fixa: <b>${top[0]}</b>, com ${EUR.format(top[1])}.</div><div class="alert">A categoria Total foi excluída automaticamente da análise.</div>`;
-      else insights.innerHTML=`<div class="alert good">Total ${ctx.year} até ${ctx.monthName}: <b>${EUR.format(currentVal)}</b>.</div><div class="alert">Comparativo ${ctx.prev} até ${ctx.monthName}: ${previousVal?EUR.format(previousVal):'sem dados suficientes'}.</div><div class="alert">Total completo ${ctx.prev}: ${prevFull[chosen]?EUR.format(prevFull[chosen]):'—'}.</div>`;
+      else insights.innerHTML=`<div class="alert good">Total ${ctx.year} até ${ctx.monthName}: <b>${EUR.format(currentVal)}</b>.</div><div class="alert">Comparativo ${ctx.prev} até ${ctx.monthName}: ${previousVal?EUR.format(previousVal):'sem dados suficientes'}.</div><div class="alert">Total completo ${ctx.prev}: ${prevFull[chosen]?EUR.format(prevFull[chosen]):'—'}.</div>${fixedMissingAlert(rows,chosen,ctx)}`;
     }
     const table=document.getElementById('fixasTable');
     if(table){
