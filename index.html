@@ -896,7 +896,7 @@ async function loadListsFromSupabase(){
       status.classList.add('warn');
     }else{
       status.classList.remove('warn');
-      status.textContent='Listas carregadas do Supabase. Qualquer alteração feita nas tabelas de listas aparece aqui após atualizar.';
+      status.textContent='Listas carregadas da Base de Dados. Qualquer alteração feita nas tabelas de listas aparece aqui após atualizar.';
     }
   }
   if(document.getElementById('cfgListManager')?.classList.contains('active')){
@@ -1159,6 +1159,7 @@ async function launchRecord(ev){
     f.querySelectorAll('.currency-input').forEach(i=>i.value='');
     updateAmortizacaoPreview(f);
     await refreshAppData();
+    notify('Registo guardado na base de dados.','good');
   }catch(error){
     console.error(error);
     const msg=error.message||String(error);
