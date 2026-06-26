@@ -425,7 +425,8 @@ body.auth-wait .app{display:none!important;}
 .login-card{width:min(440px,100%);background:white;border:1px solid var(--line);border-radius:28px;box-shadow:0 28px 80px rgba(0,0,0,.25);padding:30px;color:var(--ink)}
 .login-brand{display:flex;align-items:center;gap:14px;margin-bottom:22px}.login-brand .logo{flex:0 0 54px}.login-brand h1{font-size:22px;margin:0}.login-brand p{margin:4px 0 0;color:var(--muted);font-size:13px}
 .login-card .field{margin-bottom:14px}.login-card .btn{width:100%;height:48px;margin-top:6px}.login-error{display:none;margin-top:14px;color:var(--bad);font-weight:850;font-size:13px;line-height:1.35}.login-note{margin-top:16px;color:var(--muted);font-size:12px;line-height:1.4;text-align:center}.user-actions{align-items:center}.user-profile-badge{display:inline-flex;align-items:center;min-height:42px;padding:10px 14px;border-radius:999px;background:#e8f5ef;color:var(--good);font-size:13px;font-weight:950;white-space:nowrap;border:1px solid #caead7}.visitor-readonly-note{font-size:12px;color:var(--muted);margin-top:8px}
-@media(max-width:860px){.user-actions{margin-top:14px}.user-profile-badge{width:100%;justify-content:center}.user-actions .btn{width:100%}}
+.logout-btn{width:42px;height:42px;padding:0;display:grid;place-items:center;font-size:22px;line-height:1}
+@media(max-width:860px){.user-actions{margin-top:14px}.user-profile-badge{width:100%;justify-content:center}.user-actions .btn{width:100%}.user-actions .logout-btn{width:42px;flex:0 0 42px}}
 
 
 /* V61.2 — menu inferior mobile completo com scroll horizontal */
@@ -448,7 +449,7 @@ body.auth-wait .app{display:none!important;}
 </div>
 
 <div class="app"><main class="main">
- <div class="top"><div><h2 id="title">Início</h2><p id="subtitle">Capa da ferramenta de gestão Dona Maria Deck.</p></div><div class="actions user-actions" id="userActions"><span class="user-profile-badge" id="userProfileBadge">A autenticar...</span><button class="btn" type="button" onclick="logoutApp()">Terminar Sessão</button></div></div>
+ <div class="top"><div><h2 id="title">Início</h2><p id="subtitle">Capa da ferramenta de gestão Dona Maria Deck.</p></div><div class="actions user-actions" id="userActions"><span class="user-profile-badge" id="userProfileBadge">A autenticar...</span><button class="btn logout-btn" type="button" onclick="logoutApp()" aria-label="Terminar sessão" title="Terminar sessão">↪</button></div></div>
 
 
 <section id="inicio" class="section active"><div class="home-hero"><div class="cover"><div class="cover-date">Gestão do Restaurante · 2026</div><p class="cover-kicker">Bem-vindo(a) ao</p><div class="cover-title">DONA MARIA</div><div class="cover-subtitle">DECK</div><div class="cover-line"></div><p class="cover-text">A Tradição inspira-nos. A Inovação faz-nos crescer.</p><div class="home-mini-kpis home-control-panel" data-home-dashboard="revenue"><div class="home-revenue-card"><div class="home-revenue-pair"><div><small>Faturação mês atual</small><b>—</b><span class="home-kpi-note">A carregar dados reais...</span></div><div><small>Objetivo histórico do mês</small><b>—</b><span class="home-kpi-note">Máximo observado</span></div></div></div></div><div class="home-goal-panel"><div class="home-goal-head"><div><small>Progresso do objetivo mensal</small><b id="homeGoalPercent">—</b></div><span id="homeGoalDelta">A carregar...</span></div><div class="home-goal-track"><div id="homeGoalFill"></div></div><div class="home-goal-split"><div><small>Agora</small><b id="homeGoalNow">—</b></div><div><small>Estimado no fim do mês</small><b id="homeGoalEstimated">—</b></div></div><p id="homeGoalNote">Objetivo calculado pelo melhor valor histórico registado para este mesmo mês.</p></div><div class="home-staff-panel"><div class="home-staff-head"><div><h3>Equipa hoje</h3><span id="homeStaffDate">A carregar horário...</span></div><button class="home-staff-action" type="button" onclick="toggleHomeStaff()">Ver detalhe</button></div><div class="home-staff-grid"><div class="home-shift-card"><small>Almoço</small><b id="homeLunchCount">—</b></div><div class="home-shift-card"><small>Jantar</small><b id="homeDinnerCount">—</b></div><div class="home-shift-card"><small>Folga</small><b id="homeOffCount">—</b></div></div><div class="home-staff-details" id="homeStaffDetails"></div></div><div class="home-alerts-panel"><h3>Alertas</h3><div class="home-alert-list"><div class="home-alert" id="homePayrollAlert"><span>—</span><b>Ordenados</b>A calcular dias até ao último dia do mês.</div><div class="home-alert" id="homeRevenueMissingAlert"><span>—</span><b>Faturação em falta</b>A verificar a data máxima registada.</div></div></div><div class="cover-footer">© 2026 Dona Maria Deck · Ferramenta de Gestão</div></div></div></section>
@@ -462,7 +463,6 @@ body.auth-wait .app{display:none!important;}
  <div class="card wide"><h3>Alertas de desvios</h3><div class="list"><div class="alert bad"><b>Compras de carne acima do padrão</b><span class="amount">+18%</span><br>Face à média dos últimos 6 meses.</div><div class="alert bad"><b>Energia/Gás acima do limite</b><span class="amount">7,8%</span><br>Peso atual sobre faturação, acima do limite definido de 6,5%.</div><div class="alert good"><b>Faturação de fim de semana</b><span class="amount">+12%</span><br>Face ao mesmo mês do ano anterior.</div></div></div>
  <div class="card wide"><h3>Evolutivo mensal do ano</h3><div class="chart" id="chartAno"></div></div>
  <div class="card wide"><h3>Indicadores rápidos</h3><div class="table-wrap"><table class="table"><thead><tr><th>Indicador</th><th class="money">Mês atual</th><th class="money">Mês anterior</th><th>Estado</th></tr></thead><tbody><tr><td>Faturação</td><td class="money"><b class="money-positive">42 860 €</b></td><td class="money">39 540 €</td><td><span class="tag good">Melhorou</span></td></tr><tr><td>Despesas</td><td class="money"><b class="money-negative">28 410 €</b></td><td class="money">25 550 €</td><td><span class="tag bad">Subiu</span></td></tr><tr><td>Resultado</td><td class="money"><b class="money-positive">14 450 €</b></td><td class="money">13 990 €</td><td><span class="tag good">Positivo</span></td></tr><tr><td>Margem</td><td class="money"><b class="money-warn">33,7%</b></td><td class="money">35,3%</td><td><span class="tag warn">Vigiar</span></td></tr></tbody></table></div></div>
- <div class="card full"><h3>Registos lançados recentemente</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tipo</th><th>Data/Mês</th><th>Descrição</th><th class="money">Valor</th><th>Ação</th></tr></thead><tbody id="allRecords"></tbody></table></div></div>
 </div></section>
 
 <section id="entrada-faturacao" class="section input-page"><div class="card entry-card"><div class="entry-head"><div><h3>Faturação Diária Restaurante</h3><p>Regista a faturação de cada dia. Os campos ficam limpos automaticamente depois de lançar.</p></div><span class="subtle-badge">Entrada rápida</span></div><form class="form four entry" data-type="Faturação" onsubmit="launchRecord(event)"><div class="field"><label>Data</label><input name="data" type="date" required></div><div class="field"><label>Valor faturado</label><input name="valor" type="text" inputmode="decimal" class="currency-input" placeholder="0,00 €" required></div><div class="field field-placeholder" aria-hidden="true"></div><div class="field field-placeholder" aria-hidden="true"></div><div class="form-actions"><span class="ok">Registo lançado com sucesso.</span><button class="btn" type="reset">Limpar</button><button class="btn primary" type="submit">Lançar faturação</button></div></form></div></section>
@@ -551,7 +551,7 @@ body.auth-wait .app{display:none!important;}
 </div></section>
 
 <section id="assistente" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Assistente IA</h2><p>Faça perguntas sobre faturação, despesas, fornecedores, resultados e tendências do Dona Maria Deck.</p></div><span class="tag good">Demonstração</span></div></div><div class="chat-shell full"><div class="card"><h3>Sugestões rápidas</h3><div class="prompt-list"><button class="prompt-btn" onclick="askAI('Qual foi o melhor mês deste ano?')">Qual foi o melhor mês deste ano?</button><button class="prompt-btn" onclick="askAI('Quanto gastámos por fornecedor?')">Quanto gastámos por fornecedor?</button><button class="prompt-btn" onclick="askAI('Compara este mês com o mesmo mês do ano passado.')">Compara este mês com o mesmo mês do ano passado.</button><button class="prompt-btn" onclick="askAI('Qual foi a margem líquida acumulada?')">Qual foi a margem líquida acumulada?</button><button class="prompt-btn" onclick="askAI('Que despesas estão acima da média?')">Que despesas estão acima da média?</button></div><div class="screen-note">Na app final, este assistente vai ligar à base de dados e responder apenas com dados reais importados ou lançados.</div></div><div class="card chat-card"><div class="chat-window" id="chatWindow"><div class="msg ai"><b>Assistente Dona Maria Deck</b><br>Estou pronto para analisar os dados do restaurante. Nesta versão, as respostas são demonstrativas; na app final serão calculadas pela base de dados.</div><div class="msg ai">Exemplo: a faturação acumulada de 2026 está acima de 2025 e os fornecedores devem ser acompanhados por tendência de subida.</div></div><div class="chat-input"><input id="aiInput" placeholder="Faça uma pergunta sobre o restaurante..."><button class="btn primary" onclick="askAI()">Analisar</button></div></div></div></div></section>
-<section id="configuracoes" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Configurações</h2><p>Área de administração da aplicação: listas, utilizadores, segurança e backup.</p></div><span class="tag">Administração</span></div></div><div class="settings-grid full"><div class="card"><h3>Listas</h3><div class="setting-list"><div class="setting-row"><span>Fornecedores ativos</span><b id="cfgCountFornecedores">—</b></div><div class="setting-row"><span>Funcionários</span><b id="cfgCountFuncionarios">—</b></div><div class="setting-row"><span>Despesas fixas</span><b id="cfgCountDespesasFixas">—</b></div><div class="setting-row"><span>Categorias de investimento</span><b>6</b></div></div><div class="screen-note" id="cfgListStatus">As listas são carregadas automaticamente do Supabase.</div><div class="settings-actions"><button class="btn" onclick="loadListsFromSupabase()">Atualizar listas</button><button class="btn" onclick="openListManager('fornecedores')">Gerir fornecedores</button><button class="btn" onclick="openListManager('funcionarios')">Gerir funcionários</button><button class="btn" onclick="openListManager('despesas')">Gerir despesas fixas</button></div><div class="list-manager" id="cfgListManager"><div class="list-manager-title"><h4 id="cfgListManagerTitle">Gerir lista</h4><span class="tag" id="cfgListManagerTable">Supabase</span></div><form class="form" onsubmit="saveListItem(event)"><div class="field"><label id="cfgListInputLabel">Nome</label><input id="cfgListInput" required autocomplete="off" placeholder="Novo item da lista"></div><button class="btn primary" type="submit">Adicionar</button></form><div class="screen-note" id="cfgListManagerStatus">Escolhe uma lista para gerir.</div><div class="list-items" id="cfgListItems"></div></div></div><div class="card"><h3>Utilizadores</h3><div class="role-grid"><div class="role-card"><h4>Administrador</h4><p>Controlo total, importação, apagar e exportar.</p></div><div class="role-card"><h4>Gerente</h4><p>Introduzir, consultar e analisar dados.</p></div><div class="role-card"><h4>Consulta</h4><p>Acesso apenas a dashboards e relatórios.</p></div></div></div><div class="card"><h3>Segurança e backup</h3><div class="setting-list"><div class="setting-row"><span><span class="status-dot"></span>Base de dados online</span><b>Preparado</b></div><div class="setting-row"><span><span class="status-dot warn"></span>Versão atual</span><b id="cfgLastBackup">A carregar...</b></div><div class="setting-row"><span>Exportação geral</span><b>Excel multi-sheet</b></div></div><div class="settings-actions"><button class="btn primary" onclick="exportRestaurantData()">Exportar dados</button><button class="btn">Ver backups</button></div></div></div></div></section>
+<section id="configuracoes" class="section"><div class="grid"><div class="card full"><div class="top" style="margin-bottom:0"><div><h2 style="font-size:30px">Configurações</h2><p>Área de administração da aplicação: listas, utilizadores, segurança e backup.</p></div><span class="tag">Administração</span></div></div><div class="settings-grid full"><div class="card"><h3>Listas</h3><div class="setting-list"><div class="setting-row"><span>Fornecedores ativos</span><b id="cfgCountFornecedores">—</b></div><div class="setting-row"><span>Funcionários</span><b id="cfgCountFuncionarios">—</b></div><div class="setting-row"><span>Despesas fixas</span><b id="cfgCountDespesasFixas">—</b></div><div class="setting-row"><span>Categorias de investimento</span><b>6</b></div></div><div class="screen-note" id="cfgListStatus">As listas são carregadas automaticamente do Supabase.</div><div class="settings-actions"><button class="btn" onclick="loadListsFromSupabase()">Atualizar listas</button><button class="btn" onclick="openListManager('fornecedores')">Gerir fornecedores</button><button class="btn" onclick="openListManager('funcionarios')">Gerir funcionários</button><button class="btn" onclick="openListManager('despesas')">Gerir despesas fixas</button></div><div class="list-manager" id="cfgListManager"><div class="list-manager-title"><h4 id="cfgListManagerTitle">Gerir lista</h4><span class="tag" id="cfgListManagerTable">Supabase</span></div><form class="form" onsubmit="saveListItem(event)"><div class="field"><label id="cfgListInputLabel">Nome</label><input id="cfgListInput" required autocomplete="off" placeholder="Novo item da lista"></div><button class="btn primary" type="submit">Adicionar</button></form><div class="screen-note" id="cfgListManagerStatus">Escolhe uma lista para gerir.</div><div class="list-items" id="cfgListItems"></div></div></div><div class="card"><h3>Utilizadores</h3><div class="role-grid"><div class="role-card"><h4>Administrador</h4><p>Controlo total, importação, apagar e exportar.</p></div><div class="role-card"><h4>Gerente</h4><p>Introduzir, consultar e analisar dados.</p></div><div class="role-card"><h4>Consulta</h4><p>Acesso apenas a dashboards e relatórios.</p></div></div></div><div class="card"><h3>Segurança e backup</h3><div class="setting-list"><div class="setting-row"><span><span class="status-dot"></span>Base de dados online</span><b>Preparado</b></div><div class="setting-row"><span><span class="status-dot warn"></span>Versão atual</span><b id="cfgLastBackup">A carregar...</b></div><div class="setting-row"><span>Exportação geral</span><b>Excel multi-sheet</b></div></div><div class="settings-actions"><button class="btn primary" onclick="exportRestaurantData()">Exportar dados</button><button class="btn">Ver backups</button></div></div></div><div class="card full"><h3>Registos lançados recentemente</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tipo</th><th>Data/Mês</th><th>Descrição</th><th class="money">Valor</th><th>Ação</th></tr></thead><tbody id="allRecords"></tbody></table></div></div></div></section>
 
 <section id="importar" class="section"><div class="card importbox"><h3>Importação do histórico Excel</h3><p>Aqui a app vai converter o Excel antigo em tabelas limpas: faturação diária, fornecedores, pessoal, fixas, investimentos e categorias.</p><input type="file" accept=".xls,.xlsx,.xlsb,.csv"><br><br><button class="btn primary">Simular validação</button></div></section>
 </main><aside class="side"><div class="brand"><img class="logo brand-logo" src="icons/icon-512.png" alt="Dona Maria Deck"><div><h1>Dona Maria Deck</h1><p>Gestão Inteligente</p></div></div><nav class="nav side-home"><button data-page="inicio" onclick="show('inicio')">Início</button></nav><div class="nav-title">Introduzir</div><nav class="nav" id="navInputs"></nav><div class="nav-title">Consultar</div><nav class="nav" id="navReports"></nav><div style="margin-top:14px;font-size:10px;color:rgba(255,255,255,.45);text-align:center;letter-spacing:.08em;">V61.2</div></aside></div><div class="phonebar" id="phonebar"></div>
@@ -563,6 +563,60 @@ const db=window.supabase ? window.supabase.createClient(SUPABASE_URL,SUPABASE_PU
 const RESTAURANT_TABLES=['faturacao_historica','faturacao_diaria','fornecedores_historico','ordenados','despesas_fixas','investimentos'];
 let restaurantDataCache=null;
 let restaurantDataPromise=null;
+
+function dmCell(row,names){
+  for(const name of names){
+    if(row && Object.prototype.hasOwnProperty.call(row,name) && row[name]!==null && row[name]!==undefined) return row[name];
+  }
+  const normalize=v=>String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const wanted=names.map(normalize);
+  const key=Object.keys(row||{}).find(k=>wanted.includes(normalize(k)));
+  return key ? row[key] : null;
+}
+
+function dmNumber(value){
+  if(typeof value==='number') return Number.isFinite(value)?value:0;
+  let s=String(value??'').trim();
+  if(!s) return 0;
+  s=s.replace(/\s/g,'').replace(/€/g,'');
+  if(s.includes(',')) s=s.replace(/\./g,'').replace(',','.');
+  const n=Number(s.replace(/[^0-9.-]/g,''));
+  return Number.isFinite(n)?n:0;
+}
+
+function dmDate(value){
+  if(!value) return null;
+  if(value instanceof Date && !isNaN(value)) return value;
+  const s=String(value).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s.slice(0,10)+'T00:00:00');
+  const numeric=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);
+  if(numeric){
+    const year=Number(numeric[3].length===2?'20'+numeric[3]:numeric[3]);
+    return new Date(year,Number(numeric[2])-1,Number(numeric[1]));
+  }
+  const d=new Date(s+'T00:00:00');
+  return isNaN(d)?null:d;
+}
+
+function computeRevenueEstimate(rows,date=new Date()){
+  const year=date.getFullYear();
+  const month=date.getMonth();
+  const todayStart=new Date(year,month,date.getDate());
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const dailyTotals={};
+  (rows||[]).forEach(row=>{
+    const d=dmDate(dmCell(row,['Data','data']));
+    if(!d || isNaN(d) || d.getFullYear()!==year || d.getMonth()!==month || d>todayStart) return;
+    const value=dmNumber(dmCell(row,['Valor','valor']));
+    if(value<=0) return;
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    dailyTotals[key]=(dailyTotals[key]||0)+value;
+  });
+  const observedDays=Object.keys(dailyTotals).length;
+  const observedTotal=Object.values(dailyTotals).reduce((a,b)=>a+b,0);
+  const dailyAverage=observedDays?observedTotal/observedDays:0;
+  return {year,month,daysInMonth,observedDays,dailyAverage,observedTotal,estimated:observedDays?dailyAverage*daysInMonth:0};
+}
 
 function notify(message,type='info',timeout=3200){
   let host=document.getElementById('toastHost');
@@ -1177,7 +1231,7 @@ async function deleteRecord(id){
     notify(msg.includes('row-level security') ? 'O Supabase bloqueou o apagamento por RLS. É preciso criar policies de DELETE para estas tabelas.' : 'Erro ao apagar no Supabase: '+msg,'bad',6500);
   }
 }
-function renderRecords(){const rows=records.map(r=>`<tr><td><span class="tag">${r.type}</span></td><td>${r.date||'—'}</td><td>${r.cat}${r.desc&&r.desc!==r.cat?' · '+r.desc:''}</td><td class="money"><b>${fmt.format(r.value)}</b></td><td><button class="delete" onclick="deleteRecord(${r.id})">Apagar</button></td></tr>`).join('');allRecords.innerHTML=rows||'<tr><td colspan="5" class="empty">Ainda não existem registos lançados nesta versão do protótipo.</td></tr>';}
+function renderRecords(){const el=document.getElementById('allRecords');if(!el)return;const rows=records.map(r=>`<tr><td><span class="tag">${r.type}</span></td><td>${r.date||'—'}</td><td>${r.cat}${r.desc&&r.desc!==r.cat?' · '+r.desc:''}</td><td class="money"><b>${fmt.format(r.value)}</b></td><td><button class="delete" onclick="deleteRecord(${r.id})">Apagar</button></td></tr>`).join('');el.innerHTML=rows||'<tr><td colspan="5" class="empty">Ainda não existem registos lançados nesta versão do protótipo.</td></tr>';}
 function makeBars(id,vals,labels,mode='gold'){const el=document.getElementById(id);if(!el)return;el.innerHTML='';const max=Math.max(...vals,1);const h=chartBarHeights(el,el.classList.contains('chart-large')?245:165,el.classList.contains('chart-large')?62:34);vals.forEach((v,i)=>{const d=document.createElement('div');d.className='bar '+(mode==='red'&&i%2?'red':mode==='blue'?'blue':'');d.style.height=(h.min+v/max*h.max)+'px';d.title=(labels[i]?('Dia '+labels[i]+' · '):'')+fmt.format(id==='chartDias'?v*1000:v*1000);d.innerHTML='<span>'+labels[i]+'</span>';el.appendChild(d);});}
 function makeSignedBars(id,vals,labels){
   const el=document.getElementById(id);if(!el)return;
@@ -1426,18 +1480,12 @@ async function loadResultadosReais(){
   const targetMonth=today.getMonth();
   const currentKey=monthKey(targetYear,targetMonth);
   const currentMonthName=meses[targetMonth];
-  const daysInCurrentMonth=new Date(targetYear,targetMonth+1,0).getDate();
-
-  const currentRows=fatDia.filter(r=>{
-    const ds=getTableValue(r,['Data','data']);
-    const d=new Date(String(ds)+'T00:00:00');
-    const v=Number(getTableValue(r,['Valor','valor'])||0);
-    return ds && !isNaN(d) && d.getFullYear()===targetYear && d.getMonth()===targetMonth && v>0;
-  });
-  const fatAtual=currentRows.reduce((s,r)=>s+Number(getTableValue(r,['Valor','valor'])||0),0);
-  const observedDays=new Set(currentRows.map(r=>String(getTableValue(r,['Data','data'])).slice(0,10))).size;
-  const dailyAverage=observedDays?fatAtual/observedDays:0;
-  const fatEstimada=dailyAverage*daysInCurrentMonth;
+  const estimate=computeRevenueEstimate(fatDia,today);
+  const daysInCurrentMonth=estimate.daysInMonth;
+  const fatAtual=estimate.observedTotal;
+  const observedDays=estimate.observedDays;
+  const dailyAverage=estimate.dailyAverage;
+  const fatEstimada=estimate.estimated;
 
   const months=meses.map((m,i)=>{
     const key=monthKey(targetYear,i);
@@ -1544,11 +1592,12 @@ async function computeAllRealData(){
   addExpenseRows(forn,'fornecedores'); addExpenseRows(ords,'ordenados'); addExpenseRows(fixas,'fixas');
   invs.forEach(r=>investimentoMeses(r).forEach(x=>{ addMonth(despesasMensal,x.ano,x.mesIndex,x.valor); addToMap(yearDesp,x.ano,x.valor); addMonth(despesasPorTipo.amortizacoes,x.ano,x.mesIndex,x.valor); }));
   const monthly=meses.map((m,i)=>{ const key=monthKey(ctx.year,i); const fat=faturacaoMensal[key]||0; const desp=despesasMensal[key]||0; const lucro=fat-desp; return {ano:ctx.year,mes:m,mi:i,fat,desp,lucro,margem:fat?lucro/fat*100:null}; });
-  const currentRows=(fatDia||[]).map(r=>{ const ds=getTableValue(r,['Data','data']); const d=new Date(String(ds)+'T00:00:00'); return {data:ds,d,valor:Number(getTableValue(r,['Valor','valor'])||0)}; }).filter(r=>r.data&&!isNaN(r.d)&&r.d.getFullYear()===ctx.year&&r.d.getMonth()===ctx.monthIndex&&r.valor>0);
-  const fatAtual=sum(currentRows.map(r=>r.valor));
-  const observedDays=new Set(currentRows.map(r=>String(r.data).slice(0,10))).size;
-  const dailyAverage=observedDays?fatAtual/observedDays:0;
-  const fatEstimada=dailyAverage*ctx.daysInMonth;
+  const estimate=computeRevenueEstimate(fatDia,ctx.today);
+  const currentRows=(fatDia||[]).filter(r=>{ const d=dmDate(getTableValue(r,['Data','data'])); return d && !isNaN(d) && d.getFullYear()===ctx.year && d.getMonth()===ctx.monthIndex && d<=ctx.today; });
+  const fatAtual=estimate.observedTotal;
+  const observedDays=estimate.observedDays;
+  const dailyAverage=estimate.dailyAverage;
+  const fatEstimada=estimate.estimated;
   return {ctx,fatHist,fatDia,forn,ords,fixas,invs,faturacaoMensal,despesasMensal,yearFat,yearDesp,despesasPorTipo,monthly,currentRows,fatAtual,observedDays,dailyAverage,fatEstimada};
 }
 
@@ -2240,10 +2289,11 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       };
       const currentDaily=dailySumToDay(targetYear,targetMonth);
       const sameDaily=dailySumToDay(sameYear,targetMonth);
-      const fatMes=currentDaily.total || monthTotals[currentKey] || 0;
-      const observedDays=currentDaily.count;
-      const dailyAverage=observedDays ? currentDaily.total/observedDays : 0;
-      const fatEstimated=observedDays ? dailyAverage*daysInMonth : fatMes;
+      const revenueEstimate=computeRevenueEstimate(fatDia,today);
+      const fatMes=revenueEstimate.observedTotal || monthTotals[currentKey] || 0;
+      const observedDays=revenueEstimate.observedDays;
+      const dailyAverage=revenueEstimate.dailyAverage;
+      const fatEstimated=revenueEstimate.estimated;
       const sameMonthTotal=monthTotals[sameKey] || 0;
       const sameMonthDays=new Date(sameYear,targetMonth+1,0).getDate();
       const sameMonthComparable=sameDaily.total || (sameMonthTotal ? sameMonthTotal*(Math.min(targetDay,sameMonthDays)/sameMonthDays) : 0);
@@ -2529,11 +2579,11 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     addExpense(forn,'Fornecedores'); addExpense(ord,'Ordenados'); addExpense(fix,'Despesas Fixas');
     inv.forEach(r=>amortizacoes(r).forEach(x=>{ const k=key(x.ano,x.mes); add(despesas,k,x.valor); add(despBuckets.Amortizações,k,x.valor); add(yearDesp,x.ano,x.valor); }));
 
-    const fatRowsCurrent=fatDia.filter(r=>{ const ds=cell(r,['Data','data']); const d=ds?new Date(String(ds)+'T00:00:00'):null; const v=Number(cell(r,['Valor','valor'])||0); return d && !isNaN(d) && d.getFullYear()===year && d.getMonth()===month && v>0; });
-    const fatAtual=sum(fatRowsCurrent.map(r=>Number(cell(r,['Valor','valor'])||0)));
-    const observedDays=new Set(fatRowsCurrent.map(r=>String(cell(r,['Data','data'])).slice(0,10))).size;
-    const dailyAverage=observedDays?fatAtual/observedDays:0;
-    const fatEstimada=dailyAverage*diasMes(year,month);
+    const estimate=computeRevenueEstimate(fatDia,today);
+    const fatAtual=estimate.observedTotal;
+    const observedDays=estimate.observedDays;
+    const dailyAverage=estimate.dailyAverage;
+    const fatEstimada=estimate.estimated;
     const monthly=MESES_V49.map((m,i)=>{ const k=key(year,i); const fat=(daily[k]!==undefined && daily[k]>0) ? daily[k] : (hist[k]||0); const desp=despesas[k]||0; const lucro=fat-desp; return {mes:m,short:m.slice(0,3),fat,desp,lucro,margem:fat?lucro/fat*100:null}; });
     return {year,month,monthName:MESES_V49[month],fatEstimada,fatAtual,observedDays,dailyAverage,monthly,forn,despBuckets,yearFat,yearDesp};
   }
@@ -2881,11 +2931,11 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       fixas.forEach(r=>{ const tipo=String(val(r,['Tipo','tipo'])||'—'); if(isAggregate(tipo)) return; const y=Number(val(r,['Ano','ano'])); const m=monthIndex(val(r,['Mês','mes'])); const v=Number(val(r,['Valor','valor'])||0); if(y&&m>=0){add(fixasByMonth,key(y,m),v); add(expensesByMonth,key(y,m),v); if(y===year && m<=month)add(topFixas,tipo,v);} });
       invs.forEach(r=>amortRows(r).forEach(x=>{ add(amortByMonth,key(x.y,x.m),x.v); add(expensesByMonth,key(x.y,x.m),x.v); }));
 
-      const dailyCurrent=fatDia.filter(r=>{ const ds=val(r,['Data','data']); const d=ds?new Date(String(ds)+'T00:00:00'):null; const v=Number(val(r,['Valor','valor'])||0); return d && !isNaN(d) && d.getFullYear()===year && d.getMonth()===month && v>0; });
-      const observedDays=new Set(dailyCurrent.map(r=>String(val(r,['Data','data'])).slice(0,10))).size;
-      const fatObserved=sum(dailyCurrent.map(r=>Number(val(r,['Valor','valor'])||0)));
-      const dailyAvg=observedDays?fatObserved/observedDays:0;
-      const fatEstimated=dailyAvg*daysInMonth;
+      const estimate=computeRevenueEstimate(fatDia,now);
+      const observedDays=estimate.observedDays;
+      const fatObserved=estimate.observedTotal;
+      const dailyAvg=estimate.dailyAverage;
+      const fatEstimated=estimate.estimated;
       const fatMonth=fatObserved || (fatByMonth[curKey]||0);
       const fatPrev=fatByMonth[prevKey]||0;
       const fatSamePrev=fatByMonth[samePrevKey]||0;
@@ -3191,12 +3241,12 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     ord.forEach(r=>{const y=Number(get(r,['Ano','ano']));const m=monthIndex(get(r,['Mês','mes']));const nome=String(get(r,['Funcionário','Funcionário/a','Funcionario','funcionario'])||'—');const v=Number(get(r,['Valor','valor'])||0);if(y&&m>=0)add(ordenadosAll[monthKey(y,m)]||(ordenadosAll[monthKey(y,m)]={}),nome,v);});
     inv.forEach(r=>{const ds=get(r,['Data','data']);const date=ds?new Date(String(ds)+'T00:00:00'):null;const y=date&&!isNaN(date)?date.getFullYear():Number(get(r,['Ano','ano']));const m=date&&!isNaN(date)?date.getMonth():monthIndex(get(r,['Mês','mes']));const nome=String(get(r,['Descrição','Descricao','descricao'])||'Investimento');const v=Number(get(r,['Valor Total','valor_total','ValorTotal','valor'])||0);if(y&&m>=0)add(investimentosAll[monthKey(y,m)]||(investimentosAll[monthKey(y,m)]={}),nome,v);});
     const monthly=MESES.map((m,i)=>{const k=monthKey(currentYear,i);const fat=faturacao[k]||0;const desp=despesas[k]||0;const lucro=fat-desp;return {ano:currentYear,mes:m,mi:i,fat,desp,lucro,margem:fat?lucro/fat*100:null};});
-    const currentRows=fatDia.filter(r=>{const ds=get(r,['Data','data']);const d=ds?new Date(String(ds)+'T00:00:00'):null;const v=Number(get(r,['Valor','valor'])||0);return d&&!isNaN(d)&&d.getFullYear()===currentYear&&d.getMonth()===currentMonth&&v>0;});
-    const fatAtual=sum(currentRows.map(r=>Number(get(r,['Valor','valor'])||0)));
-    const diasObs=new Set(currentRows.map(r=>String(get(r,['Data','data'])).slice(0,10))).size;
-    const diasMes=new Date(currentYear,currentMonth+1,0).getDate();
-    const mediaDia=diasObs?fatAtual/diasObs:0;
-    const fatEstimada=mediaDia*diasMes;
+    const estimate=computeRevenueEstimate(fatDia,now);
+    const fatAtual=estimate.observedTotal;
+    const diasObs=estimate.observedDays;
+    const diasMes=estimate.daysInMonth;
+    const mediaDia=estimate.dailyAverage;
+    const fatEstimada=estimate.estimated;
     const fornecedoresYtd={};
     forn.forEach(r=>{const y=Number(get(r,['Ano','ano']));const m=monthIndex(get(r,['Mês','mes']));if(y===currentYear&&m>=0&&m<=currentMonth){add(fornecedoresYtd,String(get(r,['Fornecedor','fornecedor'])||'—'),Number(get(r,['Valor','valor'])||0));}});
     const fixasYtd={};
