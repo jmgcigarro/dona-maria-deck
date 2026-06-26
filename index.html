@@ -2149,6 +2149,15 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     const key=Object.keys(row||{}).find(k=>wanted.includes(norm(k)));
     return key ? row[key] : null;
   }
+  function homeStaffName(row){
+    return homeCell(row,['_staffName','funcionario','Funcionário','Funcionario','funcionário','colaborador','Colaborador','nome','Nome','trabalhador','Trabalhador','employee','Employee']);
+  }
+  function homeStaffRole(row){
+    return homeCell(row,['_staffRole','funcao','Função','Funcao','função','cargo','Cargo','posto','Posto','role','Role']);
+  }
+  function homeStaffCount(rows){
+    return (rows||[]).reduce((total,row)=>total+(Number(row?._staffCount)||1),0);
+  }
 
   window.toggleHomeStaff=function(keepOpen){
     const details=document.getElementById('homeStaffDetails');
@@ -2163,8 +2172,8 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     details.classList.add('active');
     const renderRows=(title,rows)=>{
       const body=rows.length ? rows.map(r=>{
-        const name=String(homeCell(r,['funcionario','Funcionário','Funcionario','funcionário'])||'—');
-        const role=String(homeCell(r,['funcao','Função','Funcao','função'])||'—');
+        const name=String(homeStaffName(r)||'—');
+        const role=String(homeStaffRole(r)||'—');
         return `<div class="home-staff-row"><b>${esc(name)}</b><span>${esc(role)}</span></div>`;
       }).join('') : `<div class="home-staff-empty">Sem funcionários registados.</div>`;
       return `<div class="home-staff-section-title">${title}</div>${body}`;
@@ -2234,8 +2243,9 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const uniqueStaff=rows=>{
         const seen=new Set();
         return rows.filter(r=>{
-          const name=String(homeCell(r,['funcionario','Funcionário','Funcionario','funcionário'])||'').trim();
-          const role=String(homeCell(r,['funcao','Função','Funcao','função'])||'').trim();
+          if(Number(r?._staffCount)) return true;
+          const name=String(homeStaffName(r)||'').trim();
+          const role=String(homeStaffRole(r)||'').trim();
           const key=norm(name)+'|'+norm(role);
           if(!name || seen.has(key)) return false;
           seen.add(key);
@@ -2248,6 +2258,59 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
         if(s.includes('jantar') || s.includes('dinner') || s.includes('noite')) return 'jantar';
         if(s.includes('folga') || s.includes('off') || s.includes('descanso')) return 'folga';
         return s;
+      };
+      const scheduleDateValue=r=>{
+        const direct=homeCell(r,['data','Data','date','Date','data_servico','Data Serviço','DataServico','Data de Serviço']);
+        if(direct) return direct;
+        const year=Number(homeCell(r,['Ano','ano','year','Year']));
+        const day=Number(homeCell(r,['Dia','dia','day','Day']));
+        const monthRaw=homeCell(r,['Mês','Mes','mês','mes','month','Month']);
+        const month=monthFromValue(monthRaw);
+        return year && day && month!==null ? localDateKey(new Date(year,month,day)) : '';
+      };
+      const scheduleShiftValue=r=>homeCell(r,['horario','Horário','Horario','turno','Turno','escala','Escala','periodo','Período','Periodo','servico','Serviço','Servico','shift','Shift']);
+      const scheduleShiftNames=v=>{
+        const s=norm(v);
+        const names=[];
+        if(s.includes('almoco') || s.includes('almorco') || s.includes('lunch')) names.push('almoco');
+        if(s.includes('jantar') || s.includes('dinner') || s.includes('noite')) names.push('jantar');
+        if(s.includes('folga') || s.includes('off') || s.includes('descanso')) names.push('folga');
+        return names;
+      };
+      const shiftCellValue=(r,shift)=>{
+        const cols={
+          almoco:['almoco','Almoço','Almoco','almoço','Lunch'],
+          jantar:['jantar','Jantar','Dinner','noite','Noite'],
+          folga:['folga','Folga','Off','descanso','Descanso']
+        };
+        return homeCell(r,cols[shift]||[]);
+      };
+      const rowsFromShiftCell=(row,shift)=>{
+        const raw=shiftCellValue(row,shift);
+        if(raw===null || raw===undefined || raw==='') return [];
+        const text=String(raw).trim();
+        const numeric=Number(text.replace(',','.'));
+        if(Number.isFinite(numeric) && numeric>0 && !/[A-Za-zÀ-ÿ]/.test(text)){
+          return [{...row,_shift:shift,_staffCount:numeric,_staffName:`${numeric} funcionários`,_staffRole:'Contagem importada'}];
+        }
+        return text.split(/\n|;|,|\s+\+\s+|\s+e\s+/i)
+          .map(name=>name.trim())
+          .filter(Boolean)
+          .map(name=>({...row,_shift:shift,_staffName:name,_staffRole:normalizeShift(shift)==='folga'?'Folga':'Serviço'}));
+      };
+      const expandScheduleRow=row=>{
+        const rows=[];
+        const shiftNames=scheduleShiftNames(scheduleShiftValue(row));
+        shiftNames.forEach(shift=>rows.push({...row,_shift:shift}));
+        ['almoco','jantar','folga'].forEach(shift=>rows.push(...rowsFromShiftCell(row,shift)));
+        return rows;
+      };
+      const scheduleMatchesToday=(row,todayKey,todayWeekday)=>{
+        const rawDate=scheduleDateValue(row);
+        const parsedDate=parseScheduleDate(rawDate);
+        if(parsedDate) return parsedDate===todayKey;
+        const weekday=homeCell(row,['dia_semana','Dia Semana','Dia da Semana','dia da semana','weekday','Weekday','dia','Dia']);
+        return norm(weekday || rawDate)===todayWeekday;
       };
 
       fatHist.forEach(r=>{
@@ -2340,8 +2403,10 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       if(goalNote) goalNote.textContent=goal ? `Objetivo: superar ${EUR.format(goal)}, o máximo histórico observado para ${monthName}.` : `Ainda não há histórico suficiente para definir objetivo de ${monthName}.`;
 
       const todayKey=localDateKey(today);
-      const todaySchedule=(horarioRows||[]).filter(r=>parseScheduleDate(homeCell(r,['data','Data']))===todayKey);
-      const shiftRows=name=>uniqueStaff(todaySchedule.filter(r=>normalizeShift(homeCell(r,['horario','Horário']))===name));
+      const todayWeekday=norm(today.toLocaleDateString('pt-PT',{weekday:'long'}));
+      const todaySchedule=(horarioRows||[]).filter(r=>scheduleMatchesToday(r,todayKey,todayWeekday));
+      const expandedSchedule=todaySchedule.flatMap(expandScheduleRow);
+      const shiftRows=name=>uniqueStaff(expandedSchedule.filter(r=>r._shift===name || normalizeShift(scheduleShiftValue(r))===name));
       const lunchRows=shiftRows('almoco');
       const dinnerRows=shiftRows('jantar');
       const offRows=shiftRows('folga');
@@ -2352,9 +2417,9 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const offCount=document.getElementById('homeOffCount');
       const staffDetails=document.getElementById('homeStaffDetails');
       if(staffDate) staffDate.textContent=`${today.toLocaleDateString('pt-PT',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}`;
-      if(lunchCount) lunchCount.textContent=`${lunchRows.length}`;
-      if(dinnerCount) dinnerCount.textContent=`${dinnerRows.length}`;
-      if(offCount) offCount.textContent=`${offRows.length}`;
+      if(lunchCount) lunchCount.textContent=`${homeStaffCount(lunchRows)}`;
+      if(dinnerCount) dinnerCount.textContent=`${homeStaffCount(dinnerRows)}`;
+      if(offCount) offCount.textContent=`${homeStaffCount(offRows)}`;
       if(staffDetails && staffDetails.classList.contains('active')){
         window.toggleHomeStaff(true);
       }
