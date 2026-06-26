@@ -558,7 +558,7 @@ body.auth-wait .app{display:none!important;}
 <script>
 const SUPABASE_URL='https://hrlfwpwzciljwpgejmha.supabase.co';
 const SUPABASE_PUBLIC_KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
-const APP_VERSION='2026.06.25-19:55';
+const APP_VERSION='2026.06.27-10:30';
 const db=window.supabase ? window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLIC_KEY) : null;
 const RESTAURANT_TABLES=['faturacao_historica','faturacao_diaria','fornecedores_historico','ordenados','despesas_fixas','investimentos'];
 let restaurantDataCache=null;
@@ -2312,6 +2312,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
         const weekday=homeCell(row,['dia_semana','Dia Semana','Dia da Semana','dia da semana','weekday','Weekday','dia','Dia']);
         return norm(weekday || rawDate)===todayWeekday;
       };
+      const scheduleRowsForDate=dateKey=>(horarioRows||[]).filter(r=>parseScheduleDate(scheduleDateValue(r))===dateKey);
 
       fatHist.forEach(r=>{
         const y=Number(value(r,['Ano','ano']));
@@ -2404,7 +2405,18 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
 
       const todayKey=localDateKey(today);
       const todayWeekday=norm(today.toLocaleDateString('pt-PT',{weekday:'long'}));
-      const todaySchedule=(horarioRows||[]).filter(r=>scheduleMatchesToday(r,todayKey,todayWeekday));
+      const datedScheduleKeys=[...new Set((horarioRows||[]).map(r=>parseScheduleDate(scheduleDateValue(r))).filter(Boolean))].sort();
+      let scheduleDateKey=todayKey;
+      let scheduleIsFallback=false;
+      let todaySchedule=scheduleRowsForDate(todayKey);
+      if(!todaySchedule.length){
+        scheduleDateKey=datedScheduleKeys.filter(k=>k<=todayKey).pop() || datedScheduleKeys[datedScheduleKeys.length-1] || todayKey;
+        todaySchedule=scheduleRowsForDate(scheduleDateKey);
+        scheduleIsFallback=scheduleDateKey!==todayKey;
+      }
+      if(!todaySchedule.length){
+        todaySchedule=(horarioRows||[]).filter(r=>scheduleMatchesToday(r,todayKey,todayWeekday));
+      }
       const expandedSchedule=todaySchedule.flatMap(expandScheduleRow);
       const shiftRows=name=>uniqueStaff(expandedSchedule.filter(r=>r._shift===name || normalizeShift(scheduleShiftValue(r))===name));
       const lunchRows=shiftRows('almoco');
@@ -2416,7 +2428,9 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const dinnerCount=document.getElementById('homeDinnerCount');
       const offCount=document.getElementById('homeOffCount');
       const staffDetails=document.getElementById('homeStaffDetails');
-      if(staffDate) staffDate.textContent=`${today.toLocaleDateString('pt-PT',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}`;
+      const scheduleDate=new Date(scheduleDateKey+'T00:00:00');
+      const scheduleDateText=isNaN(scheduleDate) ? today.toLocaleDateString('pt-PT',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'}) : scheduleDate.toLocaleDateString('pt-PT',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+      if(staffDate) staffDate.textContent=scheduleIsFallback ? `último horário disponível · ${scheduleDateText}` : scheduleDateText;
       if(lunchCount) lunchCount.textContent=`${homeStaffCount(lunchRows)}`;
       if(dinnerCount) dinnerCount.textContent=`${homeStaffCount(dinnerRows)}`;
       if(offCount) offCount.textContent=`${homeStaffCount(offRows)}`;
@@ -2468,7 +2482,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
           : null;
         const lastText=lastSupplierMonth ? monthYearText(lastSupplierMonth.getFullYear(),lastSupplierMonth.getMonth()) : 'sem registos';
         const state=monthsMissing===null || monthsMissing>1 ? 'bad' : (monthsMissing===1 ? 'warn' : '');
-        const badge=monthsMissing===null?'—':(monthsMissing===0?'Em dia':`${monthsMissing} mês${monthsMissing===1?'':'es'}`);
+        const badge=monthsMissing===null?'—':(monthsMissing===0?'Em dia':`${monthsMissing} ${monthsMissing===1?'mês':'meses'}`);
         const detail=monthsMissing===null
           ? 'Não encontrei despesas de fornecedores registadas.'
           : (lastSupplierMonth>currentMonthStart
