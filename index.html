@@ -2092,6 +2092,15 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     return data||[];
   }
 
+  function homeCell(row,names){
+    for(const n of names){
+      if(row && Object.prototype.hasOwnProperty.call(row,n) && row[n]!==null && row[n]!==undefined) return row[n];
+    }
+    const wanted=names.map(norm);
+    const key=Object.keys(row||{}).find(k=>wanted.includes(norm(k)));
+    return key ? row[key] : null;
+  }
+
   window.toggleHomeStaff=function(keepOpen){
     const details=document.getElementById('homeStaffDetails');
     if(!details) return;
@@ -2105,8 +2114,8 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     details.classList.add('active');
     const renderRows=(title,rows)=>{
       const body=rows.length ? rows.map(r=>{
-        const name=String(value(r,['funcionario','Funcionário','Funcionario','funcionário','Funcionário '])||'—');
-        const role=String(value(r,['funcao','Função','Funcao','função'])||'—');
+        const name=String(homeCell(r,['funcionario','Funcionário','Funcionario','funcionário'])||'—');
+        const role=String(homeCell(r,['funcao','Função','Funcao','função'])||'—');
         return `<div class="home-staff-row"><b>${esc(name)}</b><span>${esc(role)}</span></div>`;
       }).join('') : `<div class="home-staff-empty">Sem funcionários registados.</div>`;
       return `<div class="home-staff-section-title">${title}</div>${body}`;
@@ -2175,8 +2184,8 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const uniqueStaff=rows=>{
         const seen=new Set();
         return rows.filter(r=>{
-          const name=String(value(r,['funcionario','Funcionário','Funcionario','funcionário'])||'').trim();
-          const role=String(value(r,['funcao','Função','Funcao','função'])||'').trim();
+          const name=String(homeCell(r,['funcionario','Funcionário','Funcionario','funcionário'])||'').trim();
+          const role=String(homeCell(r,['funcao','Função','Funcao','função'])||'').trim();
           const key=norm(name)+'|'+norm(role);
           if(!name || seen.has(key)) return false;
           seen.add(key);
@@ -2267,11 +2276,11 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       if(goalDelta) goalDelta.textContent=estimatedProgress===null ? 'Sem estimativa disponível' : `Estimado: ${pctText(estimatedProgress)} do objetivo`;
       if(goalNow) goalNow.textContent=progress===null?'—':`${pctText(progress)} · ${EUR.format(fatMes)}`;
       if(goalEstimated) goalEstimated.textContent=estimatedProgress===null?'—':`${pctText(estimatedProgress)} · ${EUR.format(fatEstimated)}`;
-      if(goalNote) goalNote.textContent=goal ? `Objetivo: superar ${EUR.format(goal)}, o máximo histórico observado para ${monthName}${goalYear?` (${goalYear})`:''}. ${sameMonthComparable?`Comparação interna: ${pctSigned(delta)} face ao mesmo período de ${sameYear}.`:''}` : `Ainda não há histórico suficiente para definir objetivo de ${monthName}.`;
+      if(goalNote) goalNote.textContent=goal ? `Objetivo: superar ${EUR.format(goal)}, o máximo histórico observado para ${monthName}${goalYear?` (${goalYear})`:''}.` : `Ainda não há histórico suficiente para definir objetivo de ${monthName}.`;
 
       const todayKey=localDateKey(today);
-      const todaySchedule=(horarioRows||[]).filter(r=>parseScheduleDate(value(r,['data','Data']))===todayKey);
-      const shiftRows=name=>uniqueStaff(todaySchedule.filter(r=>normalizeShift(value(r,['horario','Horário']))===name));
+      const todaySchedule=(horarioRows||[]).filter(r=>parseScheduleDate(homeCell(r,['data','Data']))===todayKey);
+      const shiftRows=name=>uniqueStaff(todaySchedule.filter(r=>normalizeShift(homeCell(r,['horario','Horário']))===name));
       const lunchRows=shiftRows('almoco');
       const dinnerRows=shiftRows('jantar');
       window.homeStaffRowsV48={almoco:lunchRows,jantar:dinnerRows};
