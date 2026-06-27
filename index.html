@@ -1442,7 +1442,7 @@ async function loadResultadosReais(){
   const [fatHist,fatDia,forn,ords,fixas,invs]=await Promise.all([
     fetchAll('faturacao_historica'),fetchAll('faturacao_diaria'),fetchAll('fornecedores_historico'),fetchAll('ordenados'),fetchAll('despesas_fixas'),fetchAll('investimentos')
   ]);
-  const faturacao={}, despesas={}, yearFat={}, yearDesp={};
+  const faturacao={}, despesas={}, yearFat={}, yearDesp={}, despBuckets={Fornecedores:{},Ordenados:{},'Despesas Fixas':{},Amortizações:{}};
 
   fatHist.forEach(r=>{
     const ano=Number(getTableValue(r,['Ano','ano']));
@@ -1456,19 +1456,19 @@ async function loadResultadosReais(){
     const d=new Date(String(ds)+'T00:00:00');
     if(ds && !isNaN(d)){ addToMap(faturacao,monthKey(d.getFullYear(),d.getMonth()),v); addToMap(yearFat,d.getFullYear(),v); }
   });
-  function addMonthlyExpense(rows){
+  function addMonthlyExpense(rows,bucket){
     rows.forEach(r=>{
       const ano=Number(getTableValue(r,['Ano','ano']));
       const mi=monthIndexFromName(getTableValue(r,['Mês','mes']));
       const v=Number(getTableValue(r,['Valor','valor'])||0);
-      if(ano && mi>=0){ addToMap(despesas,monthKey(ano,mi),v); addToMap(yearDesp,ano,v); }
+      if(ano && mi>=0){ const k=monthKey(ano,mi); addToMap(despesas,k,v); addToMap(despBuckets[bucket],k,v); addToMap(yearDesp,ano,v); }
     });
   }
-  addMonthlyExpense(forn);
-  addMonthlyExpense(ords);
-  addMonthlyExpense(fixas);
+  addMonthlyExpense(forn,'Fornecedores');
+  addMonthlyExpense(ords,'Ordenados');
+  addMonthlyExpense(fixas,'Despesas Fixas');
   invs.forEach(r=>{
-    investimentoMeses(r).forEach(x=>{ addToMap(despesas,monthKey(x.ano,x.mesIndex),x.valor); addToMap(yearDesp,x.ano,x.valor); });
+    investimentoMeses(r).forEach(x=>{ const k=monthKey(x.ano,x.mesIndex); addToMap(despesas,k,x.valor); addToMap(despBuckets.Amortizações,k,x.valor); addToMap(yearDesp,x.ano,x.valor); });
   });
 
   const today=new Date();
@@ -1483,10 +1483,18 @@ async function loadResultadosReais(){
   const dailyAverage=estimate.dailyAverage;
   const fatEstimada=estimate.estimated;
 
+  const estimatedDespForMonth=i=>{
+    const cur=monthKey(targetYear,i), prev=monthKey(targetYear-1,i);
+    const fornecedores=despBuckets.Fornecedores[cur] || despBuckets.Fornecedores[prev] || 0;
+    const ordenados=despBuckets.Ordenados[cur] || despBuckets.Ordenados[prev] || 0;
+    const fixas=despBuckets['Despesas Fixas'][cur] || despBuckets['Despesas Fixas'][prev] || 0;
+    const amort=despBuckets.Amortizações[cur] || despBuckets.Amortizações[prev] || 0;
+    return fornecedores+ordenados+fixas+amort;
+  };
   const months=meses.map((m,i)=>{
     const key=monthKey(targetYear,i);
     const fat=faturacao[key]||0;
-    const desp=despesas[key]||0;
+    const desp=i<=targetMonth?estimatedDespForMonth(i):(despesas[key]||0);
     const lucro=fat-desp;
     const margem=fat?lucro/fat*100:null;
     return {mes:m,mesShort:m.slice(0,3),fat,desp,lucro,margem};
@@ -1510,7 +1518,7 @@ async function loadResultadosReais(){
   set('resYtd',fmt.format(lucroYtd));
   set('resResultadoDelta',`Faturação YTD ${fmt.format(fatYtd)} · Despesas YTD ${fmt.format(despYtd)}`);
   set('resMargemMedia',pctText(margemYtd));
-  set('resMargemYtd','Margem média do ano atual');
+  set('resMargemYtd','Margem média com despesas estimadas quando faltam dados');
   const ytdEl=document.getElementById('resYtd'); if(ytdEl){ ytdEl.classList.toggle('money-positive',lucroYtd>=0); ytdEl.classList.toggle('money-negative',lucroYtd<0); }
   const margemEl=document.getElementById('resMargemMedia'); if(margemEl){ margemEl.classList.toggle('money-positive',margemYtd>=20); margemEl.classList.toggle('money-warn',margemYtd<20); }
 
@@ -1519,7 +1527,7 @@ async function loadResultadosReais(){
   const yearLabels=allYears.slice(-6).map(String);
   const yearVals=allYears.slice(-6).map(y=>((yearFat[y]||0)-(yearDesp[y]||0))/1000);
   makeSignedBars('chartLucroAnos',yearVals,yearLabels);
-  set('resChartNote','Dados reais Supabase. Despesas = fornecedores + ordenados + fixas + amortizações de investimentos.');
+  set('resChartNote','Faturação real Supabase. Despesas usam o ano anterior quando faltar alguma categoria no mês atual.');
   set('resYearNote','Comparativo calculado com o histórico disponível. Atenção: alguns anos podem ter apenas faturação, sem histórico completo de despesas.');
 
   const tbody=document.getElementById('resultadosTable');
@@ -2724,7 +2732,15 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     const observedDays=estimate.observedDays;
     const dailyAverage=estimate.dailyAverage;
     const fatEstimada=estimate.estimated;
-    const monthly=MESES_V49.map((m,i)=>{ const k=key(year,i); const fat=(daily[k]!==undefined && daily[k]>0) ? daily[k] : (hist[k]||0); const desp=despesas[k]||0; const lucro=fat-desp; return {mes:m,short:m.slice(0,3),fat,desp,lucro,margem:fat?lucro/fat*100:null}; });
+    const estimatedDespForMonth=i=>{
+      const cur=key(year,i), prev=key(year-1,i);
+      const fornecedores=despBuckets.Fornecedores[cur] || despBuckets.Fornecedores[prev] || 0;
+      const ordenados=despBuckets.Ordenados[cur] || despBuckets.Ordenados[prev] || 0;
+      const fixas=despBuckets['Despesas Fixas'][cur] || despBuckets['Despesas Fixas'][prev] || 0;
+      const amort=despBuckets.Amortizações[cur] || despBuckets.Amortizações[prev] || 0;
+      return fornecedores+ordenados+fixas+amort;
+    };
+    const monthly=MESES_V49.map((m,i)=>{ const k=key(year,i); const fat=(daily[k]!==undefined && daily[k]>0) ? daily[k] : (hist[k]||0); const desp=i<=month?estimatedDespForMonth(i):(despesas[k]||0); const lucro=fat-desp; return {mes:m,short:m.slice(0,3),fat,desp,lucro,margem:fat?lucro/fat*100:null}; });
     return {year,month,monthName:MESES_V49[month],fatEstimada,fatAtual,observedDays,dailyAverage,monthly,forn,despBuckets,yearFat,yearDesp};
   }
 
@@ -2743,12 +2759,12 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       setText('resYtd',EUR_V49.format(lucroYtd));
       setText('resResultadoDelta',`Faturação YTD ${EUR_V49.format(fatYtd)} · Despesas YTD ${EUR_V49.format(despYtd)}`);
       setText('resMargemMedia',pct(margemYtd));
-      setText('resMargemYtd','Margem acumulada até ao mês atual');
+      setText('resMargemYtd','Margem acumulada com despesas estimadas quando faltam dados');
       const ytdEl=document.getElementById('resYtd'); if(ytdEl){ ytdEl.classList.toggle('money-positive',lucroYtd>=0); ytdEl.classList.toggle('money-negative',lucroYtd<0); }
       renderSignedV49('chartLucroMes',d.monthly.map(x=>x.lucro/1000),d.monthly.map(x=>x.short));
       const years=[...new Set([...Object.keys(d.yearFat),...Object.keys(d.yearDesp)].map(Number).filter(Boolean))].sort((a,b)=>a-b);
       renderSignedV49('chartLucroAnos',years.slice(-6).map(y=>((d.yearFat[y]||0)-(d.yearDesp[y]||0))/1000),years.slice(-6).map(String));
-      setText('resChartNote','Barras verdes = lucro positivo. Barras vermelhas = lucro negativo. Dados reais do Supabase.');
+      setText('resChartNote','Barras verdes = lucro positivo. Barras vermelhas = lucro negativo. Despesas podem usar o ano anterior quando faltam dados.');
       const tbody=document.getElementById('resultadosTable');
       if(tbody){
         tbody.innerHTML=d.monthly.slice(0,d.month+1).map(x=>{
@@ -3097,12 +3113,20 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const amortMonth=amortByMonth[curKey]||0;
       const expensesMonth=suppliersMonth+fixasMonth+ordsMonth+amortMonth;
       const expensesPrev=expensesByMonth[prevKey]||0;
-      const expensesEstimated=expensesByMonth[samePrevKey] || expensesMonth;
+      const expensesEstimatedForMonth=i=>{
+        const cur=key(year,i), prev=key(year-1,i);
+        const suppliers=fornecedoresByMonth[cur] || fornecedoresByMonth[prev] || 0;
+        const fixed=fixasByMonth[cur] || fixasByMonth[prev] || 0;
+        const salaries=ordsByMonth[cur] || ordsByMonth[prev] || 0;
+        const amort=amortByMonth[cur] || amortByMonth[prev] || 0;
+        return suppliers+fixed+salaries+amort;
+      };
+      const expensesEstimated=expensesEstimatedForMonth(month);
       const hasEstimatedExpensesHistory=!!expensesByMonth[samePrevKey];
       const resultEstimated=fatEstimated-expensesEstimated;
       const marginEstimated=fatEstimated?resultEstimated/fatEstimated*100:null;
       const fatYtd=sum(MESES.slice(0,month+1).map((_,i)=>fatByMonth[key(year,i)]||0));
-      const expYtd=sum(MESES.slice(0,month+1).map((_,i)=>expensesByMonth[key(year,i)]||0));
+      const expYtd=sum(MESES.slice(0,month+1).map((_,i)=>expensesEstimatedForMonth(i)));
       const resultYtd=fatYtd-expYtd;
       const marginYtd=fatYtd?resultYtd/fatYtd*100:null;
       const topSupplier=Object.entries(topSuppliers).sort((a,b)=>b[1]-a[1])[0]||['—',0];
@@ -3120,7 +3144,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       if(metrics[1]){ setText(metrics[1].querySelector('small'),`Faturação registada — ${monthName}`); setText(metrics[1].querySelector('b'),money(fatMonth)); setText(metrics[1].querySelector('.delta'),fatPrev?`${pctSigned((fatMonth-fatPrev)/fatPrev*100)} vs mês anterior`:'Dados reais Supabase'); }
       if(metrics[2]){ setText(metrics[2].querySelector('small'),`Despesas registadas — ${monthName}`); setText(metrics[2].querySelector('b'),money(expensesMonth)); setText(metrics[2].querySelector('.delta'),expensesPrev?`${pctSigned((expensesMonth-expensesPrev)/expensesPrev*100)} vs mês anterior`:'Fornecedores + ordenados + fixas'); }
       if(metrics[3]){ setText(metrics[3].querySelector('small'),'Margem estimada'); setText(metrics[3].querySelector('b'),pct(marginEstimated)); setText(metrics[3].querySelector('.delta'),marginEstimated!==null?(hasEstimatedExpensesHistory?`Despesas estimadas ${money(expensesEstimated)}`:'Sem histórico; usadas despesas registadas'):'Sem dados suficientes'); }
-      if(metrics[4]){ setText(metrics[4].querySelector('small'),`Resultado acumulado ${year}`); setText(metrics[4].querySelector('b'),money(resultYtd)); setText(metrics[4].querySelector('.delta'),`Margem YTD ${pct(marginYtd)}`); }
+      if(metrics[4]){ setText(metrics[4].querySelector('small'),`Resultado acumulado ${year}`); setText(metrics[4].querySelector('b'),money(resultYtd)); setText(metrics[4].querySelector('.delta'),`Margem YTD ${pct(marginYtd)} · despesas estimadas`); }
 
       const notes=sec.querySelector('.dashboard-note');
       if(notes){
@@ -3310,7 +3334,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const fixCur=fixasMonth[curKey]||0;
       const fixPrev=fixasMonth[prevKey]||0;
       const totalCostCur=(expensesMonth[curKey]||0);
-      const totalCostEstimated=expensesMonth[samePrevKey] || totalCostCur;
+      const totalCostEstimated=(supCur || suppliersMonth[samePrevKey] || 0)+(fixCur || fixasMonth[samePrevKey] || 0)+(ordsMonth[curKey] || ordsMonth[samePrevKey] || 0)+(amortMonth[curKey] || amortMonth[samePrevKey] || 0);
       const resultEstimated=fatEstimated-totalCostEstimated;
       const marginEstimated=fatEstimated ? resultEstimated/fatEstimated*100 : null;
       const topSupplier=Object.entries(suppliersYtd).sort((a,b)=>b[1]-a[1])[0]||['—',0];
