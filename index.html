@@ -3097,7 +3097,9 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const amortMonth=amortByMonth[curKey]||0;
       const expensesMonth=suppliersMonth+fixasMonth+ordsMonth+amortMonth;
       const expensesPrev=expensesByMonth[prevKey]||0;
-      const resultEstimated=fatEstimated-expensesMonth;
+      const expensesEstimated=expensesByMonth[samePrevKey] || expensesMonth;
+      const hasEstimatedExpensesHistory=!!expensesByMonth[samePrevKey];
+      const resultEstimated=fatEstimated-expensesEstimated;
       const marginEstimated=fatEstimated?resultEstimated/fatEstimated*100:null;
       const fatYtd=sum(MESES.slice(0,month+1).map((_,i)=>fatByMonth[key(year,i)]||0));
       const expYtd=sum(MESES.slice(0,month+1).map((_,i)=>expensesByMonth[key(year,i)]||0));
@@ -3117,13 +3119,13 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       }
       if(metrics[1]){ setText(metrics[1].querySelector('small'),`Faturação registada — ${monthName}`); setText(metrics[1].querySelector('b'),money(fatMonth)); setText(metrics[1].querySelector('.delta'),fatPrev?`${pctSigned((fatMonth-fatPrev)/fatPrev*100)} vs mês anterior`:'Dados reais Supabase'); }
       if(metrics[2]){ setText(metrics[2].querySelector('small'),`Despesas registadas — ${monthName}`); setText(metrics[2].querySelector('b'),money(expensesMonth)); setText(metrics[2].querySelector('.delta'),expensesPrev?`${pctSigned((expensesMonth-expensesPrev)/expensesPrev*100)} vs mês anterior`:'Fornecedores + ordenados + fixas'); }
-      if(metrics[3]){ setText(metrics[3].querySelector('small'),'Margem estimada'); setText(metrics[3].querySelector('b'),pct(marginEstimated)); setText(metrics[3].querySelector('.delta'),marginEstimated!==null?(marginEstimated>=25?'Boa margem operacional':'Acompanhar pressão de custos'):'Sem dados suficientes'); }
+      if(metrics[3]){ setText(metrics[3].querySelector('small'),'Margem estimada'); setText(metrics[3].querySelector('b'),pct(marginEstimated)); setText(metrics[3].querySelector('.delta'),marginEstimated!==null?(hasEstimatedExpensesHistory?`Despesas estimadas ${money(expensesEstimated)}`:'Sem histórico; usadas despesas registadas'):'Sem dados suficientes'); }
       if(metrics[4]){ setText(metrics[4].querySelector('small'),`Resultado acumulado ${year}`); setText(metrics[4].querySelector('b'),money(resultYtd)); setText(metrics[4].querySelector('.delta'),`Margem YTD ${pct(marginYtd)}`); }
 
       const notes=sec.querySelector('.dashboard-note');
       if(notes){
         const fatVsPrev=fatPrev?((fatMonth-fatPrev)/fatPrev*100):null;
-        notes.innerHTML=`<div class="note-box"><b class="${fatVsPrev===null||fatVsPrev>=0?'money-positive':'money-negative'}">Faturação do mês</b><span>${fatPrev?`${pctSigned(fatVsPrev)} face ao mês anterior.`:`${money(fatMonth)} registados no mês atual.`} Estimativa mensal: ${money(fatEstimated)}.</span></div><div class="note-box"><b class="${costPressure&&costPressure>70?'money-negative':'money-positive'}">Custos principais</b><span>Fornecedores: ${money(suppliersMonth)}. Despesas fixas: ${money(fixasMonth)}. Maior fornecedor YTD: ${topSupplier[0]}.</span></div><div class="note-box"><b>Leitura do dono</b><span>${resultEstimated>=0?'O mês aponta para resultado positivo.':'O mês exige atenção porque o resultado estimado está negativo.'} A margem estimada é ${pct(marginEstimated)}.</span></div>`;
+        notes.innerHTML=`<div class="note-box"><b class="${fatVsPrev===null||fatVsPrev>=0?'money-positive':'money-negative'}">Faturação do mês</b><span>${fatPrev?`${pctSigned(fatVsPrev)} face ao mês anterior.`:`${money(fatMonth)} registados no mês atual.`} Estimativa mensal: ${money(fatEstimated)}.</span></div><div class="note-box"><b class="${costPressure&&costPressure>70?'money-negative':'money-positive'}">Custos principais</b><span>Fornecedores: ${money(suppliersMonth)}. Despesas fixas: ${money(fixasMonth)}. Maior fornecedor YTD: ${topSupplier[0]}.</span></div><div class="note-box"><b>Leitura do dono</b><span>${resultEstimated>=0?'O mês aponta para resultado positivo.':'O mês exige atenção porque o resultado estimado está negativo.'} A margem estimada é ${pct(marginEstimated)} com despesas estimadas de ${money(expensesEstimated)}.</span></div>`;
       }
 
       const alerts=sec.querySelectorAll('.list')[0];
@@ -3308,7 +3310,8 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const fixCur=fixasMonth[curKey]||0;
       const fixPrev=fixasMonth[prevKey]||0;
       const totalCostCur=(expensesMonth[curKey]||0);
-      const resultEstimated=fatEstimated-totalCostCur;
+      const totalCostEstimated=expensesMonth[samePrevKey] || totalCostCur;
+      const resultEstimated=fatEstimated-totalCostEstimated;
       const marginEstimated=fatEstimated ? resultEstimated/fatEstimated*100 : null;
       const topSupplier=Object.entries(suppliersYtd).sort((a,b)=>b[1]-a[1])[0]||['—',0];
       const metrics=sec.querySelectorAll('.metric');
