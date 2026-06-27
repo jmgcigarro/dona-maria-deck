@@ -3076,6 +3076,13 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const fatObserved=estimate.observedTotal;
       const dailyAvg=estimate.dailyAverage;
       const fatEstimated=estimate.estimated;
+      let monthlyGoal=0;
+      Object.entries(fatByMonth).forEach(([monthKey,total])=>{
+        const [goalYear,goalMonth]=monthKey.split('-').map(Number);
+        if(goalMonth===month+1 && goalYear!==year && total>monthlyGoal) monthlyGoal=total;
+      });
+      if(!monthlyGoal && fatByMonth[curKey]) monthlyGoal=fatByMonth[curKey];
+      const monthlyGoalProgress=monthlyGoal ? Math.min(100,Math.max(0,(fatEstimated/monthlyGoal)*100)) : null;
       const fatMonth=fatObserved || (fatByMonth[curKey]||0);
       const fatPrev=fatByMonth[prevKey]||0;
       const fatSamePrev=fatByMonth[samePrevKey]||0;
@@ -3097,9 +3104,9 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
 
       const metrics=sec.querySelectorAll('.metric');
       if(metrics[0]){
-        setText(metrics[0].querySelector('small'),`Resultado estimado — ${monthName}`);
-        const b=metrics[0].querySelector('b'); setText(b,money(resultEstimated)); if(b){b.className=resultEstimated>=0?'money-positive':'money-negative';}
-        setText(metrics[0].querySelector('.delta'),`Margem estimada ${pct(marginEstimated)} · ${observedDays} dias observados`);
+        setText(metrics[0].querySelector('small'),`Faturação estimada — ${monthName}`);
+        const b=metrics[0].querySelector('b'); setText(b,money(fatEstimated)); if(b){b.className='money-positive';}
+        setText(metrics[0].querySelector('.delta'),`Objetivo do mês ${monthlyGoal?money(monthlyGoal):'—'} · Conclusão ${pct(monthlyGoalProgress)}`);
         const chips=metrics[0].closest('.card').querySelector('.status-row');
         if(chips){ chips.innerHTML=`<span class="status-chip">${resultEstimated>=0?'🟢 Resultado positivo':'🔴 Resultado negativo'}</span><span class="status-chip">📅 ${observedDays}/${daysInMonth} dias</span><span class="status-chip">${costPressure&&costPressure>70?'⚠️ Custos a vigiar':'✅ Custos controlados'}</span>`; }
       }
@@ -3271,8 +3278,19 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const estimate=computeRevenueEstimate(fatDia,now);
 
       const curKey=k(year,month), prevKey=k(prevYear,prevMonth), samePrevKey=k(sameYear,month);
+      const fatMonthTotals={};
+      [...new Set([...Object.keys(fatHistMonth),...Object.keys(fatDailyMonth)])].forEach(monthKey=>{
+        fatMonthTotals[monthKey]=fatDailyMonth[monthKey] || fatHistMonth[monthKey] || 0;
+      });
       const fatCur=estimate.observedTotal || monthlyFat[month] || 0;
       const fatEstimated=estimate.estimated || fatCur;
+      let monthlyGoal=0;
+      Object.entries(fatMonthTotals).forEach(([monthKey,total])=>{
+        const [goalYear,goalMonth]=monthKey.split('-').map(Number);
+        if(goalMonth===month+1 && goalYear!==year && total>monthlyGoal) monthlyGoal=total;
+      });
+      if(!monthlyGoal && fatMonthTotals[curKey]) monthlyGoal=fatMonthTotals[curKey];
+      const monthlyGoalProgress=monthlyGoal ? Math.min(100,Math.max(0,(fatEstimated/monthlyGoal)*100)) : null;
       const fatPrev=monthlyFat[prevMonth]||0;
       const fatSamePrev=fatDailyMonth[samePrevKey] || fatHistMonth[samePrevKey] || 0;
       const supCur=suppliersMonth[curKey]||0;
@@ -3285,11 +3303,11 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       const topSupplier=Object.entries(suppliersYtd).sort((a,b)=>b[1]-a[1])[0]||['—',0];
       const metrics=sec.querySelectorAll('.metric');
       if(metrics[0]){
-        setText(metrics[0].querySelector('small'),`Resultado estimado — ${monthName}`);
+        setText(metrics[0].querySelector('small'),`Faturação estimada — ${monthName}`);
         const b=metrics[0].querySelector('b');
-        setText(b,money(resultEstimated));
-        if(b) b.className=resultEstimated>=0?'money-positive':'money-negative';
-        setText(metrics[0].querySelector('.delta'),`Faturação estimada ${money(fatEstimated)} · Margem ${pctPlain(marginEstimated)}`);
+        setText(b,money(fatEstimated));
+        if(b) b.className='money-positive';
+        setText(metrics[0].querySelector('.delta'),`Objetivo do mês ${monthlyGoal?money(monthlyGoal):'—'} · Conclusão ${pctPlain(monthlyGoalProgress)}`);
         const chips=metrics[0].closest('.card')?.querySelector('.status-row');
         if(chips){
           chips.innerHTML=`<span class="status-chip">${resultEstimated>=0?'Resultado positivo':'Resultado negativo'}</span><span class="status-chip">${estimate.observedDays}/${estimate.daysInMonth} dias observados</span><span class="status-chip">${totalCostCur?'Custos registados':'Custos por lançar'}</span>`;
