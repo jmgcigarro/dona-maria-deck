@@ -909,7 +909,16 @@ async function loadListsFromSupabase(){
 }
 
 const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const fmt=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+const fmt=createEuroFormatter();
+function formatEuroAmount(value){
+  const n=Number(value)||0;
+  const sign=n<0?'-':'';
+  const [whole,dec]=Math.abs(n).toFixed(2).split('.');
+  return `${sign}${whole.replace(/\B(?=(\d{3})+(?!\d))/g,' ')},${dec} €`;
+}
+function createEuroFormatter(){
+  return {format:formatEuroAmount};
+}
 function parseCurrency(value){
   if(value===null||value===undefined)return 0;
   let s=String(value).trim();
@@ -1760,11 +1769,11 @@ function changeFixedExpense(){
   const currentVal=tipo==='__all'?total:(byTipo[tipo]||0);
   const prevYtdVal=tipo==='__all'?prevYtdTotal:(byPrevYtd[tipo]||0);
   setText('fixasTotalTitle',`Total despesas fixas ${year} até ${monthName}`);
-  setText('fixasTotalAno',fmt.format(currentVal));
+  setText('fixasTotalAno',formatEuroAmount(currentVal));
   setText('fixasTotalDelta',prevYtdVal?percentDelta(currentVal,prevYtdVal)+` vs ${prevYear} até ${monthName}`:'Sem dados suficientes');
   setText('fixasMaiorTipo',top[0]);
   setText('fixasMaiorPeso',total?`${pctText(top[1]/total*100)} do total até ${monthName}`:'—');
-  setText('fixasMediaMensal',fmt.format(currentVal/(currentMonthLimit+1)));
+  setText('fixasMediaMensal',formatEuroAmount(currentVal/(currentMonthLimit+1)));
   setText('fixasTiposAtivos',String(ranking.length));
   setText('fixasCompareNote',`Comparação justa: ${year} até ${monthName} vs ${prevYear} até ${monthName}. A primeira coluna mantém o total completo de ${prevYear}.`);
   if(tipo==='__all'){
@@ -1772,15 +1781,15 @@ function changeFixedExpense(){
     setText('fixasInsightTitle','Leitura global');
     makeBars('chartFixas',fixedMonthlyMap(rows,'__all',year).map(v=>v/1000),shortMonthLabels(),'blue');
     const topPct=total?top[1]/total*100:null;
-    document.getElementById('fixasInsights').innerHTML=`<div class="alert good">Total de despesas fixas em ${year} até ${monthName}: <b>${fmt.format(total)}</b>.</div><div class="alert">Maior despesa fixa até ${monthName}: <b>${top[0]}</b>, com ${fmt.format(top[1])}.</div><div class="alert ${topPct&&topPct>35?'bad':'good'}">Comparativo correto: ${fmt.format(total)} em ${year} vs ${fmt.format(prevYtdTotal)} em ${prevYear} até ${monthName}.</div>`;
-    document.getElementById('fixasTable').innerHTML=ranking.map(([name,v])=>{ const prevYtd=byPrevYtd[name]||0; const prevFull=byPrevFull[name]||0; const peso=total?v/total*100:null; const estado=prevYtd?comparisonBadge(v,prevYtd,`vs ${prevYear} até ${monthName}`):'<span class="tag soft">Sem dados suficientes</span>'; return `<tr><td>${name}</td><td class="money">${prevFull?fmt.format(prevFull):'<span class="empty">—</span>'}</td><td class="money">${prevYtd?fmt.format(prevYtd):'<span class="empty">—</span>'}</td><td class="money"><b>${fmt.format(v)}</b></td><td class="money">${pctText(peso)}</td><td>${estado}</td></tr>`; }).join('') || '<tr><td colspan="6" class="empty">Sem despesas fixas registadas.</td></tr>';
+    document.getElementById('fixasInsights').innerHTML=`<div class="alert good">Total de despesas fixas em ${year} até ${monthName}: <b>${formatEuroAmount(total)}</b>.</div><div class="alert">Maior despesa fixa até ${monthName}: <b>${top[0]}</b>, com ${formatEuroAmount(top[1])}.</div><div class="alert ${topPct&&topPct>35?'bad':'good'}">Comparativo correto: ${formatEuroAmount(total)} em ${year} vs ${formatEuroAmount(prevYtdTotal)} em ${prevYear} até ${monthName}.</div>`;
+    document.getElementById('fixasTable').innerHTML=ranking.map(([name,v])=>{ const prevYtd=byPrevYtd[name]||0; const prevFull=byPrevFull[name]||0; const peso=total?v/total*100:null; const estado=prevYtd?comparisonBadge(v,prevYtd,`vs ${prevYear} até ${monthName}`):'<span class="tag soft">Sem dados suficientes</span>'; return `<tr><td>${name}</td><td class="money">${prevFull?formatEuroAmount(prevFull):'<span class="empty">—</span>'}</td><td class="money">${prevYtd?formatEuroAmount(prevYtd):'<span class="empty">—</span>'}</td><td class="money"><b>${formatEuroAmount(v)}</b></td><td class="money">${pctText(peso)}</td><td>${estado}</td></tr>`; }).join('') || '<tr><td colspan="6" class="empty">Sem despesas fixas registadas.</td></tr>';
   }else{
     const vals=fixedMonthlyMap(rows,tipo,year); const val=sum(vals.slice(0,currentMonthLimit+1)); const prevYtd=byPrevYtd[tipo]||0; const prevFull=byPrevFull[tipo]||0;
     setText('fixasChartTitle',`Evolução mensal — ${tipo}`);
     setText('fixasInsightTitle',`Ficha individual — ${tipo}`);
     makeBars('chartFixas',vals.map(v=>v/1000),shortMonthLabels(),'blue');
-    document.getElementById('fixasInsights').innerHTML=`<div class="alert good">Total ${year} até ${monthName}: <b>${fmt.format(val)}</b>.</div><div class="alert">Comparativo ${prevYear} até ${monthName}: ${prevYtd?fmt.format(prevYtd):'sem dados suficientes'}. Total completo ${prevYear}: ${prevFull?fmt.format(prevFull):'—'}.</div><div class="alert">Esta vista permite validar custos recorrentes e identificar desvios.</div>`;
-    document.getElementById('fixasTable').innerHTML=`<tr><td>${tipo}</td><td class="money">${prevFull?fmt.format(prevFull):'<span class="empty">—</span>'}</td><td class="money">${prevYtd?fmt.format(prevYtd):'<span class="empty">—</span>'}</td><td class="money"><b>${fmt.format(val)}</b></td><td class="money">${pctText(val/(total||1)*100)}</td><td>${prevYtd?comparisonBadge(val,prevYtd,`vs ${prevYear} até ${monthName}`):'<span class="tag soft">Sem dados suficientes</span>'}</td></tr>`;
+    document.getElementById('fixasInsights').innerHTML=`<div class="alert good">Total ${year} até ${monthName}: <b>${formatEuroAmount(val)}</b>.</div><div class="alert">Comparativo ${prevYear} até ${monthName}: ${prevYtd?formatEuroAmount(prevYtd):'sem dados suficientes'}. Total completo ${prevYear}: ${prevFull?formatEuroAmount(prevFull):'—'}.</div><div class="alert">Esta vista permite validar custos recorrentes e identificar desvios.</div>`;
+    document.getElementById('fixasTable').innerHTML=`<tr><td>${tipo}</td><td class="money">${prevFull?formatEuroAmount(prevFull):'<span class="empty">—</span>'}</td><td class="money">${prevYtd?formatEuroAmount(prevYtd):'<span class="empty">—</span>'}</td><td class="money"><b>${formatEuroAmount(val)}</b></td><td class="money">${pctText(val/(total||1)*100)}</td><td>${prevYtd?comparisonBadge(val,prevYtd,`vs ${prevYear} até ${monthName}`):'<span class="tag soft">Sem dados suficientes</span>'}</td></tr>`;
   }
 }
 
@@ -1908,7 +1917,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
   const KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
   const supa = window.supabase ? window.supabase.createClient(URL, KEY) : null;
   const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const EUR=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+  const EUR=createEuroFormatter();
   const short=MESES.map(m=>m.slice(0,3));
   const norm=s=>String(s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const mi=m=>MESES.findIndex(x=>norm(x)===norm(m));
@@ -2078,11 +2087,11 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     const currentVal=chosen==='__all'?total:(cur[chosen]||0);
     const previousVal=chosen==='__all'?prevTotal:(prevYtd[chosen]||0);
     text('fixasTotalTitle',`Total despesas fixas ${ctx.year} até ${ctx.monthName}`);
-    text('fixasTotalAno',EUR.format(currentVal));
+    text('fixasTotalAno',formatEuroAmount(currentVal));
     text('fixasTotalDelta',previousVal?`${pct((currentVal-previousVal)/previousVal*100)} vs ${ctx.prev} até ${ctx.monthName}`:'Sem dados suficientes');
     text('fixasMaiorTipo',top[0]);
     text('fixasMaiorPeso',total?`${pct(top[1]/total*100)} do total até ${ctx.monthName}`:'—');
-    text('fixasMediaMensal',EUR.format(currentVal/(ctx.monthLimit+1)));
+    text('fixasMediaMensal',formatEuroAmount(currentVal/(ctx.monthLimit+1)));
     text('fixasTiposAtivos',String(ranking.length));
     text('fixasCompareNote',`Comparação justa: ${ctx.year} até ${ctx.monthName} vs ${ctx.prev} até ${ctx.monthName}. A primeira coluna mantém o total completo de ${ctx.prev}.`);
     text('fixasChartTitle',chosen==='__all'?`Evolução mensal — despesas fixas ${ctx.year}`:`Evolução mensal — ${chosen}`);
@@ -2090,15 +2099,15 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
     renderBars('chartFixas',monthly.map(v=>v/1000),short,'blue');
     const insights=document.getElementById('fixasInsights');
     if(insights){
-      if(chosen==='__all') insights.innerHTML=`<div class="alert good">Total de despesas fixas em ${ctx.year} até ${ctx.monthName}: <b>${EUR.format(total)}</b>.</div><div class="alert">Maior despesa fixa: <b>${top[0]}</b>, com ${EUR.format(top[1])}.</div><div class="alert">A categoria Total foi excluída automaticamente da análise.</div>`;
-      else insights.innerHTML=`<div class="alert good">Total ${ctx.year} até ${ctx.monthName}: <b>${EUR.format(currentVal)}</b>.</div><div class="alert">Comparativo ${ctx.prev} até ${ctx.monthName}: ${previousVal?EUR.format(previousVal):'sem dados suficientes'}.</div><div class="alert">Total completo ${ctx.prev}: ${prevFull[chosen]?EUR.format(prevFull[chosen]):'—'}.</div>${fixedMissingAlert(rows,chosen,ctx)}`;
+      if(chosen==='__all') insights.innerHTML=`<div class="alert good">Total de despesas fixas em ${ctx.year} até ${ctx.monthName}: <b>${formatEuroAmount(total)}</b>.</div><div class="alert">Maior despesa fixa: <b>${top[0]}</b>, com ${formatEuroAmount(top[1])}.</div><div class="alert">A categoria Total foi excluída automaticamente da análise.</div>`;
+      else insights.innerHTML=`<div class="alert good">Total ${ctx.year} até ${ctx.monthName}: <b>${formatEuroAmount(currentVal)}</b>.</div><div class="alert">Comparativo ${ctx.prev} até ${ctx.monthName}: ${previousVal?formatEuroAmount(previousVal):'sem dados suficientes'}.</div><div class="alert">Total completo ${ctx.prev}: ${prevFull[chosen]?formatEuroAmount(prevFull[chosen]):'—'}.</div>${fixedMissingAlert(rows,chosen,ctx)}`;
     }
     const table=document.getElementById('fixasTable');
     if(table){
       if(chosen==='__all'){
-        table.innerHTML=ranking.map(([t,v])=>`<tr><td>${t}</td><td class="money">${prevFull[t]?EUR.format(prevFull[t]):'<span class="empty">—</span>'}</td><td class="money">${prevYtd[t]?EUR.format(prevYtd[t]):'<span class="empty">—</span>'}</td><td class="money"><b>${EUR.format(v)}</b></td><td class="money">${total?pct(v/total*100):'—'}</td><td>${comparisonBadge(v,prevYtd[t])}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Sem despesas fixas registadas.</td></tr>';
+        table.innerHTML=ranking.map(([t,v])=>`<tr><td>${t}</td><td class="money">${prevFull[t]?formatEuroAmount(prevFull[t]):'<span class="empty">—</span>'}</td><td class="money">${prevYtd[t]?formatEuroAmount(prevYtd[t]):'<span class="empty">—</span>'}</td><td class="money"><b>${formatEuroAmount(v)}</b></td><td class="money">${total?pct(v/total*100):'—'}</td><td>${comparisonBadge(v,prevYtd[t])}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Sem despesas fixas registadas.</td></tr>';
       } else {
-        table.innerHTML=`<tr><td>${chosen}</td><td class="money">${prevFull[chosen]?EUR.format(prevFull[chosen]):'<span class="empty">—</span>'}</td><td class="money">${prevYtd[chosen]?EUR.format(prevYtd[chosen]):'<span class="empty">—</span>'}</td><td class="money"><b>${EUR.format(currentVal)}</b></td><td class="money">${total?pct(currentVal/total*100):'—'}</td><td>${comparisonBadge(currentVal,prevYtd[chosen])}</td></tr>`;
+        table.innerHTML=`<tr><td>${chosen}</td><td class="money">${prevFull[chosen]?formatEuroAmount(prevFull[chosen]):'<span class="empty">—</span>'}</td><td class="money">${prevYtd[chosen]?formatEuroAmount(prevYtd[chosen]):'<span class="empty">—</span>'}</td><td class="money"><b>${formatEuroAmount(currentVal)}</b></td><td class="money">${total?pct(currentVal/total*100):'—'}</td><td>${comparisonBadge(currentVal,prevYtd[chosen])}</td></tr>`;
       }
     }
   }
@@ -2118,7 +2127,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
   const KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
   const supa = window.supabase ? window.supabase.createClient(URL, KEY) : null;
   const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const EUR=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+  const EUR=createEuroFormatter();
   const norm=s=>String(s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const mi=m=>{ const i=MESES.map(norm).indexOf(norm(m)); return i>=0?i:null; };
   const value=(r,names)=>{ for(const n of names){ if(r && r[n]!==undefined && r[n]!==null) return r[n]; } return null; };
@@ -2634,7 +2643,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
   const client = (typeof window.supabase !== 'undefined') ? window.supabase.createClient(URL, KEY) : null;
   const MESES_V49=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const SHORT_V49=MESES_V49.map(m=>m.slice(0,3));
-  const EUR_V49=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+  const EUR_V49=createEuroFormatter();
   let analisesExpenseFilter='Fornecedores';
 
   function normTxt(v){ return String(v ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
@@ -2952,7 +2961,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
 // ============================== V58.1 — CORREÇÃO CARTÃO FORNECEDORES MÊS ==============================
 (function(){
   const MESES_V581=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const EUR_V581=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+  const EUR_V581=createEuroFormatter();
   function normV581(v){
     return String(v ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   }
@@ -3028,7 +3037,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
   const KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
   const client=(typeof db!=='undefined' && db) ? db : (window.supabase ? window.supabase.createClient(URL,KEY) : null);
   const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const EUR=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+  const EUR=createEuroFormatter();
   const norm=s=>String(s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const monthIndex=m=>MESES.findIndex(x=>norm(x)===norm(m) || norm(x).slice(0,3)===norm(m).slice(0,3));
   const val=(r,names)=>{for(const n of names){if(r && Object.prototype.hasOwnProperty.call(r,n) && r[n]!==null && r[n]!==undefined)return r[n]} return null;};
@@ -3190,7 +3199,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
   const KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
   const client=(typeof db!=='undefined' && db) ? db : (window.supabase ? window.supabase.createClient(URL,KEY) : null);
   const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const EUR=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+  const EUR=createEuroFormatter();
   const norm=v=>String(v??'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const mi=v=>MESES.findIndex(m=>norm(m)===norm(v) || norm(m).slice(0,3)===norm(v).slice(0,3));
   const val=(r,names)=>{for(const n of names){if(r && Object.prototype.hasOwnProperty.call(r,n) && r[n]!==null && r[n]!==undefined)return r[n];}return null;};
@@ -3404,7 +3413,7 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
   const KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
   const aiDb=(typeof db!=='undefined' && db) ? db : (window.supabase ? window.supabase.createClient(URL,KEY) : null);
   const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const EUR=new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+  const EUR=createEuroFormatter();
   const norm=s=>String(s??'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const get=(r,names)=>{for(const n of names){if(r && Object.prototype.hasOwnProperty.call(r,n))return r[n];}return null;};
   const add=(m,k,v)=>{m[k]=(m[k]||0)+(Number(v)||0)};
