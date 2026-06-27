@@ -3017,7 +3017,12 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
   const sum=arr=>arr.reduce((a,b)=>a+(Number(b)||0),0);
   const pct=v=>Number.isFinite(v)?`${v.toFixed(1).replace('.',',')}%`:'—';
   const pctSigned=v=>Number.isFinite(v)?`${v>=0?'+':''}${v.toFixed(1).replace('.',',')}%`:'Sem dados';
-  const money=v=>EUR.format(Number(v)||0).replace(/\u00a0/g,' ');
+  const money=v=>{
+    const n=Number(v)||0;
+    const sign=n<0?'-':'';
+    const [whole,dec]=Math.abs(n).toFixed(2).split('.');
+    return `${sign}${whole.replace(/\B(?=(\d{3})+(?!\d))/g,' ')},${dec} €`;
+  };
   const key=(y,m)=>`${y}-${String(m+1).padStart(2,'0')}`;
   const isAggregate=v=>['total','totais','subtotal','sub total'].includes(norm(v));
   const setText=(el,text)=>{ if(el) el.textContent=text; };
@@ -3160,7 +3165,12 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
   const norm=v=>String(v??'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const mi=v=>MESES.findIndex(m=>norm(m)===norm(v) || norm(m).slice(0,3)===norm(v).slice(0,3));
   const val=(r,names)=>{for(const n of names){if(r && Object.prototype.hasOwnProperty.call(r,n) && r[n]!==null && r[n]!==undefined)return r[n];}return null;};
-  const money=v=>EUR.format(Number(v)||0).replace(/\u00a0/g,' ');
+  const money=v=>{
+    const n=Number(v)||0;
+    const sign=n<0?'-':'';
+    const [whole,dec]=Math.abs(n).toFixed(2).split('.');
+    return `${sign}${whole.replace(/\B(?=(\d{3})+(?!\d))/g,' ')},${dec} €`;
+  };
   const pct=v=>Number.isFinite(v)?`${v>=0?'+':''}${v.toFixed(1).replace('.',',')}%`:'Sem dados';
   const pctPlain=v=>Number.isFinite(v)?`${v.toFixed(1).replace('.',',')}%`:'—';
   const k=(y,m)=>`${y}-${String(m+1).padStart(2,'0')}`;
