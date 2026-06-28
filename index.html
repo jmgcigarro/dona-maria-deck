@@ -172,7 +172,10 @@ input[type=number]{
 
 
 /* V22 — Responsive refinado: os cartões adaptam-se sem desalinhar títulos/campos */
-html,body{max-width:100%;overflow-x:hidden}
+html,body{max-width:100%;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.main,.side,.chat-window,.list-items,.table-wrap{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.main,.side,.chat-window,.list-items{touch-action:pan-y}
+.phonebar,.table-wrap{touch-action:pan-x pan-y}
 .card,.entry-card,.info-card,.quote-card,.big-total,.mini-kpi{min-width:0;overflow:hidden}
 h1,h2,h3,h4,p,label,span,b,small{min-width:0}
 .top h2,.card h3,.entry-head h3{line-height:1.15;overflow-wrap:normal;word-break:normal;hyphens:none}
@@ -220,7 +223,7 @@ h1,h2,h3,h4,p,label,span,b,small{min-width:0}
 /* Mobile compacto — reduz densidade visual sem mexer na lógica */
 @media(max-width:560px){
   body{font-size:14px}
-  html,body{min-height:100%;overscroll-behavior-y:none}
+  html,body{min-height:100%;overscroll-behavior-y:auto}
   .main{padding:calc(14px + env(safe-area-inset-top)) 8px calc(76px + env(safe-area-inset-bottom))}
   .grid,.settings-grid,.analysis-grid,.info-cards,.dashboard-note,.home-mini-kpis{gap:9px!important}
   .top{gap:8px;margin-bottom:10px}
@@ -972,7 +975,19 @@ let records=JSON.parse(localStorage.getItem('dm_records_v4')||'[]');
 const daily=[1240,1390,1810,2310,2980,2520,980,1430,1680,1720,2290,3420,2870,1100,1450,1820,1930,1460,1920,2480,2140];
 function addBtns(host,arr){arr.forEach(p=>{const b=document.createElement('button');b.textContent=p[1];b.dataset.page=p[0];b.onclick=()=>show(p[0]);host.appendChild(b);});}
 function build(){bindCurrencyInputs();addBtns(navInputs,inputPages);addBtns(navReports,reportPages);addBtns(phonebar,[['inicio','Início',''],...inputPages.map(p=>[p[0],p[1].replace('Faturação Diária Restaurante','Faturação').replace('Despesas com Fornecedores','Fornecedores').replace('Despesas Fixas','Fixas').replace('Investimentos','Invest.'),p[2]]),...reportPages.map(p=>[p[0],p[1].replace('Resumo / Alertas','Resumo').replace('Faturação - Atual','Fat. Atual').replace('Faturação - Histórico','Fat. Hist.').replace('Despesas Fixas','Fixas').replace('Assistente IA','IA').replace('Configurações','Config.'),p[2]])]);document.querySelectorAll('select[name="mes"]').forEach(s=>{s.innerHTML=meses.map(m=>`<option>${m}</option>`).join('')});renderRecords();updateNav('inicio');loadListsFromSupabase();}
-function show(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');const p=pages.find(x=>x[0]===id)||['resumo','Resumo',''];title.textContent=p[1];subtitle.textContent=p[2];updateNav(id);const topOffset=window.matchMedia&&window.matchMedia('(max-width:560px)').matches?1:0;window.scrollTo({top:topOffset,behavior:'smooth'});}
+function getAppScroller(){
+  const main=document.querySelector('.main');
+  if(!main) return window;
+  const overflowY=getComputedStyle(main).overflowY;
+  const canScroll=/(auto|scroll)/.test(overflowY) && main.scrollHeight>main.clientHeight;
+  return canScroll?main:window;
+}
+function scrollAppTop(){
+  const topOffset=window.matchMedia&&window.matchMedia('(max-width:560px)').matches?1:0;
+  const scroller=getAppScroller();
+  scroller.scrollTo({top:topOffset,behavior:'smooth'});
+}
+function show(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');const p=pages.find(x=>x[0]===id)||['resumo','Resumo',''];title.textContent=p[1];subtitle.textContent=p[2];updateNav(id);scrollAppTop();}
 function updateNav(id){document.querySelectorAll('button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===id));const actions=document.getElementById('userActions');if(actions)actions.hidden=id!=='inicio';}
 function chartBarHeights(el,desktopMax=165,desktopMin=34){
   const rect=el.getBoundingClientRect();
