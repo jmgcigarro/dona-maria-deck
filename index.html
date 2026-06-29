@@ -460,6 +460,20 @@ body.auth-wait .app{display:none!important;}
 
 
 /* V61.2 — menu inferior mobile completo com scroll horizontal */
+@media(max-width:980px){
+  .main{
+    padding-bottom:calc(var(--phonebar-height,64px) + 22px)!important;
+    scroll-padding-bottom:calc(var(--phonebar-height,64px) + 22px);
+  }
+}
+@media(max-width:560px){
+  .main{
+    padding-bottom:calc(var(--phonebar-height,58px) + 20px)!important;
+  }
+  .toast-host{
+    bottom:calc(var(--phonebar-height,58px) + 10px);
+  }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1029,6 +1043,25 @@ function scrollAppTop(){
 }
 function show(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');const p=pages.find(x=>x[0]===id)||['resumo','Resumo',''];title.textContent=p[1];subtitle.textContent=p[2];updateNav(id);scrollAppTop();}
 function updateNav(id){document.querySelectorAll('button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===id));const actions=document.getElementById('userActions');if(actions)actions.hidden=id!=='inicio';}
+function updatePhonebarHeight(){
+  const bar=document.getElementById('phonebar');
+  const visible=bar&&getComputedStyle(bar).display!=='none';
+  const height=visible?Math.ceil(bar.getBoundingClientRect().height):0;
+  document.documentElement.style.setProperty('--phonebar-height',`${height}px`);
+}
+function installPhonebarInset(){
+  updatePhonebarHeight();
+  window.addEventListener('resize',updatePhonebarHeight,{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(updatePhonebarHeight,250),{passive:true});
+  if(window.visualViewport) window.visualViewport.addEventListener('resize',updatePhonebarHeight,{passive:true});
+  if(window.ResizeObserver){
+    const bar=document.getElementById('phonebar');
+    if(bar){
+      window.__phonebarResizeObserver=new ResizeObserver(updatePhonebarHeight);
+      window.__phonebarResizeObserver.observe(bar);
+    }
+  }
+}
 function chartBarHeights(el,desktopMax=165,desktopMin=34){
   const rect=el.getBoundingClientRect();
   const styles=getComputedStyle(el);
@@ -1975,7 +2008,7 @@ async function loadV39(){
   await loadFaturacaoHistorico();
 }
 
-build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('form[data-type="Investimento"]').forEach(updateAmortizacaoPreview);loadFaturacaoAtualReal();loadV39();
+build();installPhonebarInset();installZoomLock();updateBackupTimestamp();document.querySelectorAll('form[data-type="Investimento"]').forEach(updateAmortizacaoPreview);loadFaturacaoAtualReal();loadV39();
 </script>
 
 <script>
