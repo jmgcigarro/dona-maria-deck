@@ -190,6 +190,9 @@ h1,h2,h3,h4,p,label,span,b,small{min-width:0}
 .settings-grid .form{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
 .settings-grid .field.full{grid-column:1/-1}
 .settings-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.fat-current-filter{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,320px);gap:16px;align-items:end;margin-bottom:16px}
+.fat-current-filter h3{margin:0}
+.fat-current-filter p{margin:6px 0 0;color:var(--muted);line-height:1.35}
 .supplier-ranking-wrap{overflow-x:visible;touch-action:pan-y}
 .supplier-ranking-table{table-layout:fixed}
 .supplier-ranking-table th,.supplier-ranking-table td{padding-left:10px;padding-right:10px}
@@ -212,6 +215,7 @@ h1,h2,h3,h4,p,label,span,b,small{min-width:0}
   .main{grid-column:1;padding:18px;width:100%}
   .top{flex-direction:column;align-items:stretch}
   .grid,.month-head,.info-cards,.analysis-grid{grid-template-columns:1fr!important}
+  .fat-current-filter{grid-template-columns:1fr}
   .card,.entry-card{padding:16px;border-radius:18px}
   .form,.form.four{grid-template-columns:1fr!important}
   .form-actions{justify-content:stretch;flex-direction:column;align-items:stretch}
@@ -520,7 +524,7 @@ body.auth-wait .app{display:none!important;}
 <section id="entrada-fixas" class="section input-page"><div class="card entry-card"><div class="entry-head"><div><h3>Despesas Fixas</h3><p>Controla rendas, energia, água, gás, seguros e serviços recorrentes.</p></div><span class="subtle-badge">Custos fixos</span></div><form class="form entry" data-type="Fixa" onsubmit="launchRecord(event)"><div class="field"><label>Mês</label><select name="mes" required></select></div><div class="field"><label>Tipo</label><select name="categoria"><option>Renda</option><option>Energia</option><option>Água</option><option>Gás</option><option>Seguros</option><option>Contabilidade</option><option>Software</option></select></div><div class="field"><label>Valor</label><input name="valor" type="text" inputmode="decimal" class="currency-input" placeholder="0,0 €" required></div><div class="form-actions"><span class="ok">Registo lançado com sucesso.</span><button class="btn" type="reset">Limpar</button><button class="btn primary" type="submit">Lançar despesa</button></div></form></div></section>
 <section id="entrada-investimentos" class="section input-page"><div class="card entry-card"><div class="entry-head"><div><h3>Investimentos</h3><p>Regista investimentos e define o período de amortização. A app reparte automaticamente o valor pelo mês inicial e meses seguintes.</p></div><span class="subtle-badge">Amortização</span></div><form class="form four entry" data-type="Investimento" onsubmit="launchRecord(event)"><div class="field"><label>Data do investimento</label><input name="data" type="date" required onchange="updateAmortizacaoPreview(this.form)"></div><div class="field"><label>Tipo</label><select name="categoria"><option>Equipamento</option><option>Obras</option><option>Mobiliário</option><option>Software</option><option>Outro</option></select></div><div class="field"><label>Valor total</label><input name="valor" type="text" inputmode="decimal" class="currency-input" placeholder="0,0 €" required oninput="updateAmortizacaoPreview(this.form)"></div><div class="field"><label>Período de amortização</label><select name="amortizacao" onchange="updateAmortizacaoPreview(this.form)"><option value="1">Custo pontual — 1 mês</option><option value="12">12 meses</option><option value="24">24 meses</option><option value="36" selected>36 meses</option><option value="48">48 meses</option></select></div><div class="amort-preview full"><div><small>Valor mensal</small><b id="amortValorMensal">0,0 €</b></div><div><small>Período</small><b id="amortPeriodo">—</b></div><div><small>Lançamento em resultados</small><b id="amortResultado">Amortização mensal</b></div></div><div class="form-actions"><span class="ok">Investimento lançado e plano de amortização criado.</span><button class="btn" type="reset" onclick="setTimeout(()=>updateAmortizacaoPreview(this.form),0)">Limpar</button><button class="btn primary" type="submit">Lançar investimento</button></div></form></div></section>
 
-<section id="fat-mes" class="section"><div class="month-head"><div class="big-total"><small>Total faturado</small><b>—</b><div class="delta">A carregar dados reais...</div></div><div class="mini-kpi"><small>Média diária</small><b>—</b></div><div class="mini-kpi"><small>Melhor dia</small><b>—</b></div><div class="mini-kpi"><small>Dias abaixo da média</small><b>—</b></div></div><div class="grid"><div class="card full"><h3>Leitura rápida do mês</h3><p class="screen-note">A carregar faturação diária diretamente da tabela faturacao_diaria.</p><div class="chart chart-large" id="chartDias"></div></div><div class="card full"><h3>Faturação diária detalhada</h3><div class="table-wrap"><table class="table"><thead><tr><th>Data</th><th>Dia</th><th class="money">Faturação</th><th class="money">Acumulado</th><th class="status-cell">Estado</th></tr></thead><tbody id="dailyTable"><tr><td colspan="5" class="empty">A carregar dados reais...</td></tr></tbody></table></div></div></div></section>
+<section id="fat-mes" class="section"><div class="card full fat-current-filter"><div><h3>Faturação - Atual</h3><p>Meses do ano atual com faturação registada.</p></div><div class="field"><label>Mês em análise</label><select id="fatAtualMonthSelect" onchange="loadFaturacaoAtualReal()"><option>A carregar...</option></select></div></div><div class="month-head"><div class="big-total"><small>Total faturado</small><b>—</b><div class="delta">A carregar dados reais...</div></div><div class="mini-kpi"><small>Média diária</small><b>—</b></div><div class="mini-kpi"><small>Melhor dia</small><b>—</b></div><div class="mini-kpi"><small>Dias abaixo da média</small><b>—</b></div></div><div class="grid"><div class="card full"><h3>Leitura rápida do mês</h3><p class="screen-note">A carregar faturação diária diretamente da tabela faturacao_diaria.</p><div class="chart chart-large" id="chartDias"></div></div><div class="card full"><h3>Faturação diária detalhada</h3><div class="table-wrap"><table class="table"><thead><tr><th>Data</th><th>Dia</th><th class="money">Faturação</th><th class="money">Acumulado</th><th class="status-cell">Estado</th></tr></thead><tbody id="dailyTable"><tr><td colspan="5" class="empty">A carregar dados reais...</td></tr></tbody></table></div></div></div></section>
 <section id="fat-anteriores" class="section"><div class="grid">
   <div class="card full"><div class="supplier-card"><div><h3>Faturação - Histórico</h3><p>Visão histórica da faturação mensal e anual, com comparação entre anos, melhor mês e sazonalidade.</p></div><div class="field" style="min-width:260px"><label>Ano em análise</label><select id="histYearSelect" onchange="renderFaturacaoHistoricoAno()"><option>A carregar...</option></select></div></div></div>
   <div class="card metric kpi-card good"><small>Faturação total histórica</small><b id="histTotal">—</b><div class="delta" id="histTotalNote">Desde 2018</div></div>
@@ -1473,6 +1477,7 @@ async function loadFaturacaoAtualReal(){
   const sec=document.getElementById('fat-mes');
   const tbody=document.getElementById('dailyTable');
   const note=sec?.querySelector('.screen-note');
+  const monthSelect=document.getElementById('fatAtualMonthSelect');
   function showFaturacaoMessage(message){
     if(note) note.textContent=message;
     if(tbody) tbody.innerHTML=`<tr><td colspan="5" class="empty">${message}</td></tr>`;
@@ -1497,9 +1502,23 @@ async function loadFaturacaoAtualReal(){
   const registered=parsed.filter(r=>r.valor>0);
   if(!registered.length){ showFaturacaoMessage('Sem faturação registada na tabela faturacao_diaria.'); return; }
 
-  const latest=registered.reduce((a,b)=> b.d>a.d ? b : a, registered[0]);
-  const targetYear=latest.ano;
-  const targetMonth=latest.mesIndex;
+  const currentYear=new Date().getFullYear();
+  const currentYearRows=registered.filter(r=>r.ano===currentYear);
+  if(!currentYearRows.length){
+    if(monthSelect) monthSelect.innerHTML='<option>Sem meses disponíveis</option>';
+    showFaturacaoMessage(`Sem faturação registada em ${currentYear}.`);
+    return;
+  }
+  const availableMonths=[...new Set(currentYearRows.map(r=>r.mesIndex))].sort((a,b)=>a-b);
+  const selectedRaw=monthSelect?.value;
+  const selectedMonth=selectedRaw!==undefined && selectedRaw!=='' ? Number(selectedRaw) : NaN;
+  const latest=currentYearRows.reduce((a,b)=> b.d>a.d ? b : a, currentYearRows[0]);
+  const targetYear=currentYear;
+  const targetMonth=availableMonths.includes(selectedMonth) ? selectedMonth : latest.mesIndex;
+  if(monthSelect){
+    monthSelect.innerHTML=availableMonths.map(mi=>`<option value="${mi}">${meses[mi]} ${targetYear}</option>`).join('');
+    monthSelect.value=String(targetMonth);
+  }
   const monthRows=parsed.filter(r=>r.ano===targetYear && r.mesIndex===targetMonth && r.valor>0).sort((a,b)=>a.d-b.d);
   const dailyRows=[...monthRows.reduce((map,r)=>{
     const key=String(r.data).slice(0,10);
