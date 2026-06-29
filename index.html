@@ -971,7 +971,33 @@ function bindCurrencyInputs(){
 const inputPages=[['entrada-faturacao','Faturação Diária Restaurante','Registar vendas diárias do restaurante.'],['entrada-fornecedores','Despesas com Fornecedores','Lançar faturas e pagamentos de fornecedores.'],['entrada-pessoal','Ordenados','Registar ordenados e encargos com pessoal.'],['entrada-fixas','Despesas Fixas','Controlar rendas, energia, água, gás e serviços.'],['entrada-investimentos','Investimentos','Registar obras, equipamentos e melhorias.']];
 const reportPages=[['resumo','Resumo / Alertas','Indicadores do mês a decorrer e evolução anual.'],['fat-mes','Faturação - Atual','Consultar dia a dia do mês a decorrer.'],['fat-anteriores','Faturação - Histórico','Consultar meses já fechados no ano atual.'],['fornecedores','Fornecedores','Comparar fornecedores e consultar detalhe individual.'],['despesas-fixas-consulta','Despesas Fixas','Consultar evolução e detalhe das despesas fixas.'],['resultados','Resultados','Lucro mensal, despesas, margens e comparativo com anos anteriores.'],['analises','Análises','Tendências, desvios, alertas e leitura evolutiva.'],['assistente','Assistente IA','Perguntas em linguagem natural sobre a gestão do restaurante.'],['configuracoes','Configurações','Listas, utilizadores, segurança e backup.']];
 const pages=[['inicio','Início','Capa da ferramenta de gestão Dona Maria Deck.'],...reportPages,...inputPages];
-let records=JSON.parse(localStorage.getItem('dm_records_v4')||'[]');
+const RECENT_RECORDS_KEY='dm_records_v4';
+const RECENT_RECORDS_TTL_MS=24*60*60*1000;
+function getRecentRecordTime(record){
+  const stamp=Number(record?.createdAt||record?.id);
+  return Number.isFinite(stamp)?stamp:Date.now();
+}
+function filterRecentRecords(items){
+  const now=Date.now();
+  return (Array.isArray(items)?items:[]).filter(record=>now-getRecentRecordTime(record)<RECENT_RECORDS_TTL_MS);
+}
+function loadRecentRecords(){
+  let stored=[];
+  try{stored=JSON.parse(localStorage.getItem(RECENT_RECORDS_KEY)||'[]');}
+  catch(error){console.warn('Não foi possível ler os registos recentes.',error);}
+  const fresh=filterRecentRecords(stored);
+  if(fresh.length!==stored.length) localStorage.setItem(RECENT_RECORDS_KEY,JSON.stringify(fresh));
+  return fresh;
+}
+function saveRecentRecords(){
+  records=filterRecentRecords(records);
+  localStorage.setItem(RECENT_RECORDS_KEY,JSON.stringify(records));
+}
+function addRecentRecord(record){
+  const createdAt=Date.now();
+  records.unshift({...record,id:createdAt,createdAt});
+}
+let records=loadRecentRecords();
 const daily=[1240,1390,1810,2310,2980,2520,980,1430,1680,1720,2290,3420,2870,1100,1450,1820,1930,1460,1920,2480,2140];
 function addBtns(host,arr){arr.forEach(p=>{const b=document.createElement('button');b.textContent=p[1];b.dataset.page=p[0];b.onclick=()=>show(p[0]);host.appendChild(b);});}
 function build(){bindCurrencyInputs();addBtns(navInputs,inputPages);addBtns(navReports,reportPages);addBtns(phonebar,[['inicio','Início',''],...inputPages.map(p=>[p[0],p[1].replace('Faturação Diária Restaurante','Faturação').replace('Despesas com Fornecedores','Fornecedores').replace('Despesas Fixas','Fixas').replace('Investimentos','Invest.'),p[2]]),...reportPages.map(p=>[p[0],p[1].replace('Resumo / Alertas','Resumo').replace('Faturação - Atual','Fat. Atual').replace('Faturação - Histórico','Fat. Hist.').replace('Despesas Fixas','Fixas').replace('Assistente IA','IA').replace('Configurações','Config.'),p[2]])]);document.querySelectorAll('select[name="mes"]').forEach(s=>{s.innerHTML=meses.map(m=>`<option>${m}</option>`).join('')});renderRecords();updateNav('inicio');loadListsFromSupabase();}
@@ -1140,7 +1166,7 @@ async function launchRecord(ev){
       const onlineRow=await saveFaturacaoDiariaOnline(date,val);
       const d=getAnoMesDiaFromDate(date);
       const payload={"Data":date,"Ano":d.ano,"Mês":d.mes,"Dia":d.dia,"Valor":val};
-      records.unshift({id:Date.now(),type:'Faturação',date,cat,desc:'Gravado no Supabase',value:val,online:{table:'faturacao_diaria',payload,row:onlineRow}});
+      addRecentRecord({type:'Faturação',date,cat,desc:'Gravado no Supabase',value:val,online:{table:'faturacao_diaria',payload,row:onlineRow}});
 
     }else if(f.dataset.type==='Fornecedor'){
       const d=getAnoMesDiaFromDate(date);
@@ -1151,7 +1177,7 @@ async function launchRecord(ev){
         "Valor":val
       };
       const onlineRow=await insertOnline('fornecedores_historico',payload);
-      records.unshift({id:Date.now(),type:'Fornecedor',date,cat,desc:'Gravado no Supabase',value:val,online:{table:'fornecedores_historico',payload,row:onlineRow}});
+      addRecentRecord({type:'Fornecedor',date,cat,desc:'Gravado no Supabase',value:val,online:{table:'fornecedores_historico',payload,row:onlineRow}});
 
     }else if(f.dataset.type==='Ordenados'){
       const mes=fd.get('mes');
@@ -1163,7 +1189,7 @@ async function launchRecord(ev){
         "Valor":val
       };
       const onlineRow=await insertOnline('ordenados',payload);
-      records.unshift({id:Date.now(),type:'Ordenados',date:mes,cat,desc:'Gravado no Supabase',value:val,online:{table:'ordenados',payload,row:onlineRow}});
+      addRecentRecord({type:'Ordenados',date:mes,cat,desc:'Gravado no Supabase',value:val,online:{table:'ordenados',payload,row:onlineRow}});
 
     }else if(f.dataset.type==='Fixa'){
       const mes=fd.get('mes');
@@ -1175,7 +1201,7 @@ async function launchRecord(ev){
         "Valor":val
       };
       const onlineRow=await insertOnline('despesas_fixas',payload);
-      records.unshift({id:Date.now(),type:'Despesa fixa',date:mes,cat,desc:'Gravado no Supabase',value:val,online:{table:'despesas_fixas',payload,row:onlineRow}});
+      addRecentRecord({type:'Despesa fixa',date:mes,cat,desc:'Gravado no Supabase',value:val,online:{table:'despesas_fixas',payload,row:onlineRow}});
 
     }else if(f.dataset.type==='Investimento'){
       const months=Number(fd.get('amortizacao')||1);
@@ -1188,10 +1214,10 @@ async function launchRecord(ev){
         "Meses Amortização":months
       };
       const onlineRow=await insertOnline('investimentos',payload);
-      records.unshift({id:Date.now(),type:'Investimento',date,cat,desc:'Gravado no Supabase · '+desc,value:val,months,monthly:mensal,online:{table:'investimentos',payload,row:onlineRow}});
+      addRecentRecord({type:'Investimento',date,cat,desc:'Gravado no Supabase · '+desc,value:val,months,monthly:mensal,online:{table:'investimentos',payload,row:onlineRow}});
     }
 
-    localStorage.setItem('dm_records_v4',JSON.stringify(records));
+    saveRecentRecords();
     f.reset();
     f.querySelectorAll('.currency-input').forEach(i=>i.value='');
     updateAmortizacaoPreview(f);
@@ -1255,7 +1281,7 @@ async function deleteRecord(id){
   try{
     await deleteOnlineRecord(record);
     records=records.filter(r=>r.id!==id);
-    localStorage.setItem('dm_records_v4',JSON.stringify(records));
+    saveRecentRecords();
     notify('Registo apagado da base de dados.','good');
     await refreshAppData();
   }catch(error){
@@ -1264,7 +1290,7 @@ async function deleteRecord(id){
     notify(msg.includes('row-level security') ? 'O Supabase bloqueou o apagamento por RLS. É preciso criar policies de DELETE para estas tabelas.' : 'Erro ao apagar no Supabase: '+msg,'bad',6500);
   }
 }
-function renderRecords(){const el=document.getElementById('allRecords');if(!el)return;const rows=records.map(r=>`<tr><td><span class="tag">${r.type}</span></td><td>${r.date||'—'}</td><td>${r.cat}${r.desc&&r.desc!==r.cat?' · '+r.desc:''}</td><td class="money"><b>${fmt.format(r.value)}</b></td><td><button class="delete" onclick="deleteRecord(${r.id})">Apagar</button></td></tr>`).join('');el.innerHTML=rows||'<tr><td colspan="5" class="empty">Ainda não existem registos lançados nesta versão do protótipo.</td></tr>';}
+function renderRecords(){const el=document.getElementById('allRecords');if(!el)return;saveRecentRecords();const rows=records.map(r=>`<tr><td><span class="tag">${r.type}</span></td><td>${r.date||'—'}</td><td>${r.cat}${r.desc&&r.desc!==r.cat?' · '+r.desc:''}</td><td class="money"><b>${fmt.format(r.value)}</b></td><td><button class="delete" onclick="deleteRecord(${r.id})">Apagar</button></td></tr>`).join('');el.innerHTML=rows||'<tr><td colspan="5" class="empty">Ainda não existem registos lançados nas últimas 24 horas.</td></tr>';}
 function makeBars(id,vals,labels,mode='gold'){const el=document.getElementById(id);if(!el)return;el.innerHTML='';const max=Math.max(...vals,1);const h=chartBarHeights(el,el.classList.contains('chart-large')?245:165,el.classList.contains('chart-large')?62:34);vals.forEach((v,i)=>{const d=document.createElement('div');d.className='bar '+(mode==='red'&&i%2?'red':mode==='blue'?'blue':'');d.style.height=(h.min+v/max*h.max)+'px';d.title=(labels[i]?('Dia '+labels[i]+' · '):'')+fmt.format(id==='chartDias'?v*1000:v*1000);d.innerHTML='<span>'+labels[i]+'</span>';el.appendChild(d);});}
 function makeSignedBars(id,vals,labels){
   const el=document.getElementById(id);if(!el)return;
@@ -2526,8 +2552,10 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
       }
       if(revenueMissingAlert){
         const todayStart=new Date(targetYear,targetMonth,targetDay);
+        const expectedStart=new Date(todayStart);
+        expectedStart.setDate(expectedStart.getDate()-1);
         const maxStart=maxRevenueDate?new Date(maxRevenueDate.getFullYear(),maxRevenueDate.getMonth(),maxRevenueDate.getDate()):null;
-        const missing=maxStart?Math.max(0,Math.floor((todayStart-maxStart)/86400000)):null;
+        const missing=maxStart?Math.max(0,Math.floor((expectedStart-maxStart)/86400000)):null;
         const dateText=maxStart?maxStart.toLocaleDateString('pt-PT'):'sem registos';
         const state=missing===null || missing>2 ? 'bad' : (missing>0 ? 'warn' : '');
         const badge=missing===null?'—':(missing===0?'Em dia':`${missing} dias`);
@@ -2537,8 +2565,8 @@ build();installZoomLock();updateBackupTimestamp();document.querySelectorAll('for
           : (maxStart>todayStart
             ? `A maior data registada é ${dateText}, posterior a hoje.`
             : (missing===0
-              ? `A faturação está registada até hoje (${dateText}).`
-              : `A última data registada é ${dateText}; há ${missing} dia${missing===1?'':'s'} por lançar até hoje.`));
+              ? (maxStart>=todayStart ? `A faturação já inclui hoje (${dateText}).` : `A faturação está em dia até ontem. Último registo: ${dateText}.`)
+              : `A última data registada é ${dateText}; há ${missing} dia${missing===1?'':'s'} por lançar até ontem.`));
         revenueMissingAlert.innerHTML=`<span>${badge}</span><b>Faturação em falta</b>${missingText}`;
       }
       if(suppliersMissingAlert){
