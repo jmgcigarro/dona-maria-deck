@@ -88,6 +88,9 @@
 .result-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;}
 @media(max-height:800px) and (min-width:981px){.main{padding-top:18px;padding-bottom:18px}.top{margin-bottom:12px}.cover-title{font-size:48px}.info-card{min-height:112px}.quote-card{display:none}.cover-footer{margin-top:10px}.cover-text{margin-bottom:12px}}
 
+.page-footer{width:100%;text-align:center;margin:34px auto 0;color:var(--muted);font-size:14px}
+.section>.page-footer{grid-column:1/-1}
+
 /* V10 — sistema visual uniforme para formulários */
 .entry-card{max-width:1040px;margin:0 auto;padding:24px 26px 22px}.entry-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:22px}.entry-head h3{margin:0;font-size:22px}.entry-head p{margin:6px 0 0;color:var(--muted);line-height:1.45}.form{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.form.two{grid-template-columns:repeat(2,minmax(0,1fr));max-width:720px}.form.four{grid-template-columns:repeat(4,minmax(0,1fr))}.field{min-width:0}.field label{height:18px;line-height:18px;margin-bottom:8px}.field input,.field select,.field textarea{height:48px;min-height:48px;padding:0 14px;border-radius:13px;font-size:15px;line-height:48px;appearance:auto}
 .currency-input{
@@ -1038,6 +1041,16 @@ let records=loadRecentRecords();
 const daily=[1240,1390,1810,2310,2980,2520,980,1430,1680,1720,2290,3420,2870,1100,1450,1820,1930,1460,1920,2480,2140];
 function addBtns(host,arr){arr.forEach(p=>{const b=document.createElement('button');b.textContent=p[1];b.dataset.page=p[0];b.onclick=()=>show(p[0]);host.appendChild(b);});}
 function build(){bindCurrencyInputs();addBtns(navInputs,inputPages);addBtns(navReports,reportPages);addBtns(phonebar,[['inicio','Início',''],...inputPages.map(p=>[p[0],p[1].replace('Faturação Diária Restaurante','Faturação').replace('Despesas com Fornecedores','Fornecedores').replace('Despesas Fixas','Fixas').replace('Investimentos','Invest.'),p[2]]),...reportPages.map(p=>[p[0],p[1].replace('Resumo / Alertas','Resumo').replace('Faturação - Atual','Fat. Atual').replace('Faturação - Histórico','Fat. Hist.').replace('Despesas Fixas','Fixas').replace('Assistente IA','IA').replace('Configurações','Config.'),p[2]])]);document.querySelectorAll('select[name="mes"]').forEach(s=>{s.innerHTML=meses.map(m=>`<option>${m}</option>`).join('')});renderRecords();updateNav('inicio');loadListsFromSupabase();}
+function installPageFooters(){
+  const text='© 2026 Dona Maria Deck · InteliGest';
+  document.querySelectorAll('.section').forEach(section=>{
+    if(section.querySelector('.cover-footer,.page-footer')) return;
+    const footer=document.createElement('div');
+    footer.className='cover-footer page-footer';
+    footer.textContent=text;
+    section.appendChild(footer);
+  });
+}
 function getAppScroller(){
   const main=document.querySelector('.main');
   if(!main) return window;
@@ -2019,7 +2032,7 @@ async function loadV39(){
   await loadFaturacaoHistorico();
 }
 
-build();installPhonebarInset();installZoomLock();updateBackupTimestamp();document.querySelectorAll('form[data-type="Investimento"]').forEach(updateAmortizacaoPreview);loadFaturacaoAtualReal();loadV39();
+build();installPageFooters();installPhonebarInset();installZoomLock();updateBackupTimestamp();document.querySelectorAll('form[data-type="Investimento"]').forEach(updateAmortizacaoPreview);loadFaturacaoAtualReal();loadV39();
 </script>
 
 <script>
