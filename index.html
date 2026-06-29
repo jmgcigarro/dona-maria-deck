@@ -1054,7 +1054,7 @@ function getAppScroller(){
 function scrollAppTop(){
   const topOffset=window.matchMedia&&window.matchMedia('(max-width:560px)').matches?1:0;
   const scroller=getAppScroller();
-  scroller.scrollTo({top:topOffset,behavior:'smooth'});
+  scroller.scrollTo({top:topOffset,behavior:'auto'});
 }
 function show(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');const p=pages.find(x=>x[0]===id)||['resumo','Resumo',''];title.textContent=p[1];subtitle.textContent=p[2];updateNav(id);updateSectionMinHeight();scrollAppTop();}
 function updateNav(id){document.querySelectorAll('button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===id));const actions=document.getElementById('userActions');if(actions)actions.hidden=id!=='inicio';}
@@ -1073,8 +1073,11 @@ function updateSectionMinHeight(){
   const styles=getComputedStyle(main);
   const padTop=parseFloat(styles.paddingTop)||0;
   const padBottom=parseFloat(styles.paddingBottom)||0;
+  const header=main.querySelector(':scope > .top');
+  const headerStyles=header?getComputedStyle(header):null;
+  const headerHeight=header?(header.getBoundingClientRect().height+(parseFloat(headerStyles.marginBottom)||0)):0;
   const viewportHeight=Math.round((window.visualViewport&&window.visualViewport.height)||window.innerHeight||document.documentElement.clientHeight||0);
-  const minHeight=Math.max(0,viewportHeight-padTop-padBottom);
+  const minHeight=Math.max(0,viewportHeight-padTop-padBottom-headerHeight);
   document.documentElement.style.setProperty('--section-min-height',`${minHeight}px`);
 }
 function installPhonebarInset(){
