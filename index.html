@@ -466,24 +466,18 @@ body.auth-wait .app{display:none!important;}
 
 /* V61.2 — menu inferior mobile completo com scroll horizontal */
 @media(max-width:980px){
-  body{
-    padding-bottom:calc(var(--phonebar-height,118px) + 12px)!important;
-  }
   .section.active{
-    min-height:calc(100dvh - var(--phonebar-height,118px) - 40px);
+    min-height:calc(100dvh - var(--phonebar-height,118px) - 44px);
   }
   .main{
     padding-bottom:calc(var(--phonebar-height,118px) + 26px)!important;
     scroll-padding-bottom:calc(var(--phonebar-height,118px) + 26px);
   }
-  .main::after{
-    content:"";
-    display:block;
-    height:calc(var(--phonebar-height,118px) + 12px);
-    pointer-events:none;
-  }
 }
 @media(max-width:560px){
+  .section.active{
+    min-height:calc(100dvh - var(--phonebar-height,96px) - 38px - env(safe-area-inset-top));
+  }
   .main{
     padding-bottom:calc(var(--phonebar-height,96px) + 24px)!important;
   }
