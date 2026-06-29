@@ -185,6 +185,16 @@ h1,h2,h3,h4,p,label,span,b,small{min-width:0}
 .settings-grid .form{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
 .settings-grid .field.full{grid-column:1/-1}
 .settings-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.supplier-ranking-wrap{overflow-x:visible;touch-action:pan-y}
+.supplier-ranking-table{table-layout:fixed}
+.supplier-ranking-table th,.supplier-ranking-table td{padding-left:10px;padding-right:10px}
+.supplier-ranking-table th{white-space:normal;line-height:1.15}
+.supplier-ranking-table th:nth-child(1){width:24%}
+.supplier-ranking-table th:nth-child(2),.supplier-ranking-table th:nth-child(3),.supplier-ranking-table th:nth-child(4){width:16%}
+.supplier-ranking-table th:nth-child(5){width:11%}
+.supplier-ranking-table th:nth-child(6){width:17%}
+.supplier-ranking-table td:first-child{white-space:normal;overflow-wrap:anywhere}
+.supplier-ranking-table .tag{white-space:normal;text-align:center;line-height:1.1}
 @media(max-width:1180px){
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .wide{grid-column:1/-1}
@@ -218,6 +228,10 @@ h1,h2,h3,h4,p,label,span,b,small{min-width:0}
   .cover-title{letter-spacing:.04em;font-size:clamp(34px,12vw,46px)}
   .cover-subtitle{letter-spacing:.18em}
   .info-card b{white-space:normal}
+}
+@media(max-width:760px){
+  .supplier-ranking-wrap{overflow-x:auto;touch-action:pan-x pan-y}
+  .supplier-ranking-table{min-width:720px}
 }
 
 /* Mobile compacto — reduz densidade visual sem mexer na lógica */
@@ -552,7 +566,7 @@ body.auth-wait .app{display:none!important;}
   <div class="card wide"><h3 id="supplierChartTitle">Comparativo mensal — todos os fornecedores</h3><div class="chart chart-large" id="chartSupplier"></div></div>
   <div class="card wide"><h3 id="supplierInsightTitle">Leitura global</h3><div class="list" id="supplierInsights"><div class="alert good">A página começa numa visão consolidada para perceber rapidamente quais são os fornecedores com maior peso.</div><div class="alert">O filtro permite entrar na ficha individual de cada fornecedor sem criar páginas separadas.</div><div class="alert bad">Talho Central está a crescer acima da média e deve ser acompanhado.</div></div></div>
 
-  <div class="card full"><h3>Ranking por fornecedor</h3><p class="screen-note" id="supplierCompareNote">Comparativo face ao ano anterior até ao mês atual. Mantém-se também o total completo do ano anterior.</p><div class="table-wrap"><table class="table"><thead><tr><th>Fornecedor</th><th class="money">Ano anterior total</th><th class="money">Ano anterior até mês atual</th><th class="money">Ano atual até mês atual</th><th class="money">Peso atual</th><th>Estado</th></tr></thead><tbody id="supplierTable"><tr><td>Talho Central</td><td class="money">42 300 €</td><td class="money">48 920 €</td><td class="money">26 700 €</td><td class="money">41%</td><td><span class="tag warn">A subir</span></td></tr><tr><td>Makro</td><td class="money">31 800 €</td><td class="money">29 600 €</td><td class="money">13 420 €</td><td class="money">21%</td><td><span class="tag good">Normal</span></td></tr><tr><td>Peixaria Atlântico</td><td class="money">18 750 €</td><td class="money">22 100 €</td><td class="money">11 880 €</td><td class="money">18%</td><td><span class="tag">Estável</span></td></tr><tr><td>Delta Cafés</td><td class="money">8 900 €</td><td class="money">9 450 €</td><td class="money">5 700 €</td><td class="money">9%</td><td><span class="tag">Estável</span></td></tr><tr><td>Super Bock</td><td class="money">11 600 €</td><td class="money">13 350 €</td><td class="money">7 100 €</td><td class="money">11%</td><td><span class="tag warn">Vigiar</span></td></tr></tbody></table></div></div>
+  <div class="card full"><h3>Ranking por fornecedor</h3><p class="screen-note" id="supplierCompareNote">Comparativo face ao ano anterior até ao mês atual. Mantém-se também o total completo do ano anterior.</p><div class="table-wrap supplier-ranking-wrap"><table class="table supplier-ranking-table"><thead><tr><th>Fornecedor</th><th class="money">Ano anterior total</th><th class="money">Ano anterior até mês atual</th><th class="money">Ano atual até mês atual</th><th class="money">Peso atual</th><th>Estado</th></tr></thead><tbody id="supplierTable"><tr><td>Talho Central</td><td class="money">42 300 €</td><td class="money">48 920 €</td><td class="money">26 700 €</td><td class="money">41%</td><td><span class="tag warn">A subir</span></td></tr><tr><td>Makro</td><td class="money">31 800 €</td><td class="money">29 600 €</td><td class="money">13 420 €</td><td class="money">21%</td><td><span class="tag good">Normal</span></td></tr><tr><td>Peixaria Atlântico</td><td class="money">18 750 €</td><td class="money">22 100 €</td><td class="money">11 880 €</td><td class="money">18%</td><td><span class="tag">Estável</span></td></tr><tr><td>Delta Cafés</td><td class="money">8 900 €</td><td class="money">9 450 €</td><td class="money">5 700 €</td><td class="money">9%</td><td><span class="tag">Estável</span></td></tr><tr><td>Super Bock</td><td class="money">11 600 €</td><td class="money">13 350 €</td><td class="money">7 100 €</td><td class="money">11%</td><td><span class="tag warn">Vigiar</span></td></tr></tbody></table></div></div>
 </div></section>
 
 <section id="despesas-fixas-consulta" class="section"><div class="grid">
