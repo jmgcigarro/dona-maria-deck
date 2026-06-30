@@ -1,19 +1,19 @@
-const CACHE_NAME = "dona-maria-deck-v10";
+const CACHE_NAME = "dona-maria-deck-v11";
 
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app-core.js",
-  "./pages-suppliers-fixed.js",
-  "./pages-home-history.js",
-  "./pages-results-analysis.js",
-  "./auth.js",
-  "./home-supplier-alert.js",
-  "./summary-legacy.js",
-  "./summary.js",
-  "./assistant.js",
-  "./sw-register.js",
+  "./css/styles.css",
+  "./js/core/app-core.js",
+  "./js/pages/pages-suppliers-fixed.js",
+  "./js/pages/pages-home-history.js",
+  "./js/pages/pages-results-analysis.js",
+  "./js/auth.js",
+  "./js/pages/home-supplier-alert.js",
+  "./js/pages/summary-legacy.js",
+  "./js/pages/summary.js",
+  "./js/assistant.js",
+  "./js/sw-register.js",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
