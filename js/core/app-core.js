@@ -1,8 +1,9 @@
-const SUPABASE_URL='https://hrlfwpwzciljwpgejmha.supabase.co';
-const SUPABASE_PUBLIC_KEY='sb_publishable_2VSqW87Rn7f4OwC1EXDSoQ_CInkq7mK';
-const APP_VERSION='2026.06.30-01';
+const DECK_CONFIG=window.DECK_CONFIG||{};
+const SUPABASE_URL=DECK_CONFIG.supabaseUrl;
+const SUPABASE_PUBLIC_KEY=DECK_CONFIG.supabasePublicKey;
+const APP_VERSION=DECK_CONFIG.appVersion||'dev';
 const db=window.supabase ? window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLIC_KEY) : null;
-const RESTAURANT_TABLES=['faturacao_historica','faturacao_diaria','fornecedores_historico','ordenados','despesas_fixas','investimentos'];
+const RESTAURANT_TABLES=DECK_CONFIG.restaurantTables||[];
 let restaurantDataCache=null;
 let restaurantDataPromise=null;
 
@@ -398,7 +399,7 @@ const inputPages=[['entrada-faturacao','Faturação Diária Restaurante','Regist
 const reportPages=[['resumo','Resumo / Alertas','Indicadores do mês a decorrer e evolução anual.'],['fat-mes','Faturação - Atual','Consultar dia a dia do mês a decorrer.'],['fat-anteriores','Faturação - Histórico','Consultar meses já fechados no ano atual.'],['fornecedores','Fornecedores','Comparar fornecedores e consultar detalhe individual.'],['despesas-fixas-consulta','Despesas Fixas','Consultar evolução e detalhe das despesas fixas.'],['resultados','Resultados','Lucro mensal, despesas, margens e comparativo com anos anteriores.'],['analises','Análises','Tendências, desvios, alertas e leitura evolutiva.'],['assistente','Assistente IA','Perguntas em linguagem natural sobre a gestão do restaurante.'],['configuracoes','Configurações','Listas, utilizadores, segurança e backup.']];
 const pages=[['inicio','Início','Capa da ferramenta de gestão Dona Maria Deck.'],...reportPages,...inputPages];
 const RECENT_RECORDS_KEY='dm_records_v4';
-const RECENT_RECORDS_TTL_MS=24*60*60*1000;
+const RECENT_RECORDS_TTL_MS=DECK_CONFIG.recentRecordsTtlMs||24*60*60*1000;
 function getRecentRecordTime(record){
   const stamp=Number(record?.createdAt||record?.id);
   return Number.isFinite(stamp)?stamp:Date.now();

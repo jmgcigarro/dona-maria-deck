@@ -1,23 +1,7 @@
-const CACHE_NAME = "dona-maria-deck-v11";
+importScripts("./js/config.js");
 
-const FILES_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./css/styles.css",
-  "./js/core/app-core.js",
-  "./js/pages/pages-suppliers-fixed.js",
-  "./js/pages/pages-home-history.js",
-  "./js/pages/pages-results-analysis.js",
-  "./js/auth.js",
-  "./js/pages/home-supplier-alert.js",
-  "./js/pages/summary-legacy.js",
-  "./js/pages/summary.js",
-  "./js/assistant.js",
-  "./js/sw-register.js",
-  "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png"
-];
+const CACHE_NAME = self.DECK_CONFIG.cacheName;
+const FILES_TO_CACHE = self.DECK_CONFIG.filesToCache;
 
 self.addEventListener("install", event => {
   event.waitUntil(
