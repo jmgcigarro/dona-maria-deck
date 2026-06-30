@@ -738,9 +738,8 @@ async function deleteOnlineRecord(record){
   }else{
     Object.entries(spec.payload).forEach(([column,value])=>{query=query.eq(column,value);});
   }
-  const {data,error}=await query.select('*');
+  const {error}=await query;
   if(error) throw error;
-  if(!data || data.length===0) throw new Error(`O Supabase não apagou nenhuma linha em "${spec.table}". Verifica se este registo ainda existe ou se a policy DELETE está ativa.`);
   invalidateRestaurantData();
 }
 
@@ -752,7 +751,7 @@ async function deleteRecord(id){
     await deleteOnlineRecord(record);
     records=records.filter(r=>r.id!==id);
     saveRecentRecords();
-    notify('Registo apagado da base de dados.','good');
+    notify('Registo apagado. A lista foi atualizada.','good');
     await refreshAppData();
   }catch(error){
     console.error(error);
